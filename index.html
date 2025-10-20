@@ -137,6 +137,8 @@
         .controls select.action-select { background-color: #28a745; }
         .controls select.work-type-select { background-color: #ffc107; color: #333; }
         .controls select.vehicle-select { background-color: #6c757d; }
+        
+        /* ✅ 수정된 부분: width: 100% 제거 */
         .controls select.route-navigate-select {
             padding: 8px 15px;
             font-size: 17.5px;
@@ -145,8 +147,9 @@
             border: none;
             cursor: pointer;
             border-radius: 4px;
-            width: 100%; 
+            flex-grow: 1; /* flex-grow를 사용하여 공간 채우기 */
         }
+
 
         /* 법정휴무일 옵션 스타일 (배경색, 작은 박스) */
         .holiday-option-group {
@@ -191,19 +194,51 @@
             margin-bottom: 10px; font-weight: bold;
             color: #333; text-decoration: underline;
         }
-        .sunday { background-color: #ffe0e0; }
-        .saturday { background-color: #e0e0ff; }
-        .holiday { background-color: #ffcccc; font-weight: bold; color: #cc0000; }
         
-        /* 공휴일 이름 스타일 */
-        .holiday-name {
-            display: block;
-            font-size: 0.6em; 
-            line-height: 1.2;
-            font-weight: bold;
-            color: #cc0000;
+        /* 바탕색 제거 및 요일 셀 스타일 */
+        .sunday { background-color: initial !important; }
+        .saturday { background-color: initial !important; }
+        .holiday { 
+            background-color: initial !important; 
+            font-weight: bold; /* 요일/날짜 셀은 굵게 유지 */
+            color: #cc0000; /* 요일/날짜 셀은 빨갛게 유지 */
         }
         
+        /* ✅ 공휴일 행의 데이터 셀(3번째 컬럼부터)의 색상과 굵기 일반으로 복원 */
+        .holiday td:not(:nth-child(1)):not(:nth-child(2)) {
+            color: #333; /* 기본 텍스트 색상 */
+            font-weight: normal; /* 기본 굵기 */
+        }
+        
+        /* ✅ 수정: 공휴일/주말 보조 텍스트 스타일 통일 및 크기 0.5em로 변경 */
+        .sub-day-info {
+            display: block;
+            font-size: 0.5em; /* 1/2 글자 크기 요청 반영 */
+            line-height: 1.2;
+            font-weight: bold;
+            color: inherit; /* 부모(td)의 색상을 상속받음 */
+        }
+        
+        /* ✅ 요일 셀 내부 컨테이너 스타일 */
+        .day-cell-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            font-size: 1em; /* 기본 폰트 크기 */
+        }
+        
+        /* ✅ 요일 이름 스타일 */
+        .day-name-main {
+            font-weight: bold;
+            font-size: 1.2em; /* 요일 자체 글자 크기 증가 */
+            line-height: 1.2;
+        }
+        
+        /* 기존 .weekend-abbr, .holiday-name 스타일은 .sub-day-info로 통합되므로 제거 */
+
+
         .edit-mode {
             position: relative;
             padding: 2px; display: flex; flex-direction: column;
@@ -251,9 +286,9 @@
         .edit-mode .cell-buttons .btn-delete:hover { background-color: #c82333; }
 
 
-        .name-entry { display: block; margin-top: 2px; margin-bottom: 2px; }
+        .name-entry { display: block; margin-top: 2px; margin-bottom: 2px; color: inherit; }
         .hidden-x { color: white; }
-        /* ✅ 수정된 부분: 저장 후에도 강조가 유지되도록 font-weight: bold 추가 */
+        /* 저장 후에도 강조가 유지되도록 font-weight: bold 추가 */
         .name-entry.bold-name {
             font-weight: bold;
         }
@@ -304,7 +339,24 @@
                 width: 4%;
                 vertical-align: middle; 
             }
-            .holiday-name { font-size: 0.7em; }
+            
+            /* ✅ 인쇄 시에도 1/2 크기 유지 */
+            .sub-day-info { font-size: 0.5em; } 
+            .day-name-main { font-size: 1em; } /* 인쇄 시 요일 크기 조정 */
+            
+            /* 프린트 시에도 배경색 제거 및 스타일 일반화 */
+            .sunday { background-color: initial !important; }
+            .saturday { background-color: initial !important; }
+            .holiday { 
+                background-color: initial !important; 
+                font-weight: bold; 
+                color: #cc0000; 
+            }
+            /* ✅ 프린트 시에도 데이터 셀 일반화 */
+            .holiday td:not(:nth-child(1)):not(:nth-child(2)) {
+                color: #000; /* 검은색으로 강제 */
+                font-weight: normal; 
+            }
         }
     </style>
 </head>
@@ -333,6 +385,11 @@
                 <button onclick="addOrUpdateRoute()">노선 추가/수정</button>
                 <button onclick="deleteRoute()" class="btn-danger">선택 노선 삭제</button>
             </div>
+            
+            <div class="control-group">
+                <label for="routeNavigateSelect">관련 노선 이동:</label>
+                <select id="routeNavigateSelect" class="route-navigate-select" onchange="handleRouteSelectChange(this.value)"></select>
+            </div>
         </fieldset>
 
         <fieldset>
@@ -357,17 +414,8 @@
                     <option value="ignore">미적용</option>
                 </select>
             </div>
-        </fieldset>
-
-        <fieldset>
-            <legend>근무현황관리옵션</legend>
             
-            <div class="control-group">
-                <label for="routeNavigateSelect">관련 노선 이동:</label>
-                <select id="routeNavigateSelect" class="route-navigate-select" onchange="handleRouteSelectChange(this.value)"></select>
-            </div>
-            
-            <div class="control-group">
+            <div class="control-group" style="border-top: 1px solid #dee2e6; padding-top: 10px; margin-top: 5px;">
                 <button onclick="printPage()">인쇄</button>
                 <div style="display: flex; flex-direction: column; gap: 2px; margin-left: 5px;">
                     <div style="display: flex; align-items: center; gap: 3px; font-size: 0.9em; height: 18px;">
@@ -384,11 +432,12 @@
                     </div>
                 </div>
             </div>
-            
-            <div class="control-group">
+        </fieldset>
+
+        <fieldset>
+            <legend>근무전체데이타관리옵션</legend> <div class="control-group">
                 <select id="scheduleActionsSelect" class="action-select" onchange="handleScheduleActions()">
-                    <option value="">근무표 관리 옵션</option>
-                    <option value="reset">현재 노선 초기화</option>
+                    <option value="">근무전체데이타관리옵션</option> <option value="reset">현재 노선 초기화</option>
                     <option value="backup">전체 데이터 백업</option>
                     <option value="restore">전체 데이터 복구</option>
                 </select>
@@ -405,9 +454,16 @@
                     <option value="">근무조건 선택</option>
                     <option value="normal">3/3 근무</option>
                     <option value="biweekly">격주 근무</option>
-                </select>
+                    <option value="five_day">5일근무</option> </select>
             </div>
-        </fieldset>
+
+            <div style="border-top: 1px solid #dee2e6; padding-top: 10px; margin-top: 5px;"></div> 
+            
+            <div class="control-group">
+                <button onclick="alert('승무일지 및 배차관리 로직을 추가할 예정입니다.')">승무일지 및 배차관리</button>
+                <button onclick="alert('근무자명단관리 로직을 추가할 예정입니다.')">근무자명단관리</button>
+            </div>
+            </fieldset>
         
         <fieldset>
             <legend>차량 설정 (현재 노선)</legend>
@@ -789,6 +845,11 @@
                 alert('격주 근무 차량은 일요일 고정 저장이 불가능합니다.');
                 return;
             }
+            // if (workType === 'five_day' && (dayOfWeek === '0' || dayOfWeek === '6')) {
+            //     alert('5일 근무 차량은 주말 고정 저장이 불가능합니다.');
+            //     return;
+            // }
+
 
             const currentRecurringKey = `${dayOfWeek}-${colId}`;
             if (!fixedScheduleData[currentRecurringKey]) {
@@ -883,7 +944,7 @@
             const now = new Date();
             const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
 
-            // ✅ 수정된 부분: 현재 노선 번호를 파일명에 포함
+            // 현재 노선 번호를 파일명에 포함
             const routeIdentifier = (currentRoute ? currentRoute.replace(/\s/g, '') : 'all');
             const filename = `bus_schedule_${routeIdentifier}_backup_${timestamp}.json`;
 
@@ -939,6 +1000,7 @@
             reader.readAsText(file);
         }
 
+        // ✅ 요일 표시 로직 수정된 부분
         function generateSchedule() {
             if (!currentRoute || !allRoutesData.routes[currentRoute]) {
                 document.getElementById('tableCaption').textContent = '표시할 노선을 선택하거나 추가해주세요.';
@@ -996,16 +1058,43 @@
                 const holidayName = applyHolidays ? isPublicHoliday(d) : false;
                 const isHoliday = !!holidayName;
                 
-                let rowClass = isHoliday ? 'holiday' : '';
-                let dayName = getDayName(dayOfWeek); 
+                let rowClass = '';
+                const dayName = getDayName(dayOfWeek); 
+                let mainColor = '#333'; 
+                let subText = ''; // 요일 밑에 1/2 크기로 표시될 텍스트
                 
-                let holidayText = '';
                 if (isHoliday) {
-                    holidayText = `<span class="holiday-name">${holidayName}</span>`;
-                } else if (dayOfWeek === 0) {
-                    rowClass = 'sunday';
-                } else if (dayOfWeek === 6) {
-                    rowClass = 'saturday';
+                    rowClass = 'holiday'; 
+                    mainColor = '#cc0000'; 
+                    // 법정휴일/대체휴일: 이름의 첫 두 글자만 사용
+                    subText = holidayName.substring(0, 2); 
+                } else if (dayOfWeek === 0) { // Sunday
+                    rowClass = 'sunday'; 
+                    mainColor = '#cc0000'; 
+                    // 일요일: '일요'
+                    subText = '일요'; 
+                } else if (dayOfWeek === 6) { // Saturday
+                    rowClass = 'saturday'; 
+                    mainColor = '#0000cc'; 
+                    // 토요일: '토요'
+                    subText = '토요';
+                }
+                
+                let dayCellContent;
+
+                // 공휴일이거나 토요일/일요일인 경우
+                if (dayOfWeek === 0 || dayOfWeek === 6 || isHoliday) {
+                    dayCellContent = `
+                        <div class="day-cell-content">
+                            <span class="day-name-main" style="color: ${mainColor};">${dayName}</span>
+                            <span class="sub-day-info" style="color: ${mainColor};">${subText}</span>
+                        </div>`;
+                } else { // 평일
+                    dayCellContent = `
+                        <div class="day-cell-content">
+                            <span class="day-name-main" style="color: ${mainColor};">${dayName}</span>
+                            <span class="sub-day-info" style="color: ${mainColor};"></span>
+                        </div>`;
                 }
 
                 const dataCellsHTML = VEHICLE_COLS.map(colId =>
@@ -1015,7 +1104,7 @@
                 scheduleBody.insertAdjacentHTML('beforeend', `
                     <tr class="${rowClass}">
                         <td>${d.getDate()}</td>
-                        <td>${dayName}${holidayText}</td> 
+                        <td>${dayCellContent}</td> 
                         ${dataCellsHTML}
                     </tr>`);
             }
@@ -1162,13 +1251,21 @@
             const colId = vehicleSelect.value;
             const workType = workTypeSelect.value;
             if (!colId || !workType) return;
-            if (workType === 'normal' || workType === 'biweekly') {
-                if (confirm(`차량 [${colId}]의 근무형태를 [${workType === 'normal' ? '3/3 근무' : '격주 근무'}]로 설정하고 저장하시겠습니까?`)) {
+            
+            // 'five_day' 근무 형태 선택 시 로직 추가 필요
+            if (workType === 'normal' || workType === 'biweekly' || workType === 'five_day') { 
+                let workTypeName = '';
+                if (workType === 'normal') workTypeName = '3/3 근무';
+                else if (workType === 'biweekly') workTypeName = '격주 근무';
+                else if (workType === 'five_day') workTypeName = '5일 근무';
+                
+                if (confirm(`차량 [${colId}]의 근무형태를 [${workTypeName}]로 설정하고 저장하시겠습니까?`)) {
                     workTypeConfig[colId] = workType;
                     saveMasterData();
-                    alert(`차량 [${colId}]의 근무형태가 [${workType === 'normal' ? '3/3 근무' : '격주 근무'}]로 설정되었습니다. '고정' 저장 시 적용됩니다.`);
+                    alert(`차량 [${colId}]의 근무형태가 [${workTypeName}]로 설정되었습니다. '고정' 저장 시 적용됩니다.`);
                 }
             }
+            
             vehicleSelect.value = '';
             workTypeSelect.value = '';
         }
@@ -1193,7 +1290,7 @@
             loadRouteData(currentRoute); 
 
             // 날짜/요일 셀 클릭 시 편집 모드 해제 이벤트 리스너 추가
-            document.getElementById('scheduleBody').addEventListener('click', clearEditMode);
+            document.addEventListener('click', clearEditMode);
         });
     </script>
 </body>

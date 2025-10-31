@@ -1,0 +1,3241 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>통합 근무 관리 시스템 (현황표 + 승무일지)</title>
+    
+    <style>
+        /* ================================================================= */
+        /* [공통] Global Styles */
+        /* ================================================================= */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 10px;
+            background-color: #e9ecef; /* 배경색 변경 */
+            color: #333;
+            font-size: 14pt;
+        }
+
+        .divider {
+            margin: 40px 0;
+            border: 2px solid #0056b3;
+        }
+
+
+        /* ================================================================= */
+        /* [Section 1] 근무 현황표 Styles */
+        /* ================================================================= */
+        
+        #section1 .controls {
+            background-color: #fff;
+            padding: 15px; border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            align-items: stretch; 
+        }
+
+        #section1 .controls fieldset {
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin: 0;
+            background: linear-gradient(145deg, #ffffff, #f0f0f5);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            min-width: 300px; 
+            display: flex;
+            flex-direction: column;
+            gap: 10px; 
+            transition: transform 0.2s;
+        }
+        
+        #section1 .controls fieldset:hover {
+             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+             transform: translateY(-2px);
+        }
+
+        #section1 .controls fieldset legend {
+            font-weight: bold;
+            font-size: 1.2em;
+            color: #0056b3;
+            padding: 2px 10px;
+            border-radius: 4px;
+            background-color: #eaf4ff;
+            box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        #section1 .controls .control-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        #section1 .controls label { font-weight: bold;
+            margin-right: 5px; white-space: nowrap; }
+        #section1 .controls input[type="text"],
+        #section1 .controls input[type="number"], 
+        #section1 .controls select {
+            padding: 6px;
+            border: 1px solid #a8c8e1; 
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1em;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        
+        #section1 .controls input[type="number"] { width: 70px;
+        }
+        
+        #section1 .controls input#companyInput {
+            flex: 1 1 auto;
+            min-width: 150px;
+        }
+        #section1 .controls select#typeSelect {
+            flex: 1 1 auto;
+            min-width: 150px;
+        }
+        
+        #section1 .controls select { flex-grow: 1;
+            min-width: 120px; }
+
+        #section1 #vehicleInputsContainer {
+            display: flex;
+            flex-wrap: wrap; 
+            gap: 5px;
+            width: 100%;
+            margin-top: 5px;
+            padding: 5px;
+            background: #e9f0f6; 
+            border-radius: 4px;
+            border: 1px solid #cfe2f3;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+        #section1 #vehicleInputsContainer input {
+            width: 80px;
+            font-size: 0.9em;
+            padding: 4px;
+        }
+
+        #section1 .controls select.margin-select {
+            width: 35px;
+            min-width: 35px;
+            padding: 1px 3px;
+            font-size: 0.85em; 
+            flex-grow: 0;
+        }
+        
+        #section1 .controls button,
+        #section1 .controls select.action-select,
+        #section1 .controls select.work-type-select,
+        #section1 .controls select.vehicle-select {
+            padding: 8px 15px;
+            color: white; border: none; border-radius: 4px;
+            cursor: pointer; font-size: 17.5px;
+            text-decoration: none; display: inline-block;
+            text-align: center; white-space: nowrap;
+            width: auto;
+            flex-grow: 0; 
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        }
+        
+        #section1 .controls button { background-color: #007bff;
+        }
+        #section1 .controls button:hover { background-color: #0056b3;
+        }
+        #section1 .controls button.btn-danger { background-color: #dc3545;
+        }
+        #section1 .controls button.btn-danger:hover { background-color: #c82333;
+        }
+        
+        #section1 .controls select.action-select { background-color: #28a745;
+        }
+        #section1 .controls select.work-type-select { background-color: #ffc107; color: #333;
+        }
+        #section1 .controls select.vehicle-select { background-color: #6c757d;
+        }
+        
+        #section1 .controls select.route-navigate-select {
+            padding: 8px 15px;
+            font-size: 17.5px;
+            background-color: #17a2b8; 
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            flex-grow: 1;
+        }
+
+        #section1 .holiday-option-group {
+            background-color: #e3f2fd;
+            padding: 8px;
+            border-radius: 5px;
+            align-items: center;
+            border: 1px solid #b3e5fc;
+        }
+        #section1 .holiday-option-group select {
+            padding: 4px;
+            font-size: 0.9em;
+            flex-grow: 0; 
+            width: 100px;
+        }
+
+        #section1 #scheduleContainer {
+            background-color: white;
+            padding: 10px; 
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin: 20px auto;
+            max-width: 95%; overflow-x: auto;
+            border-radius: 8px;
+        }
+        #section1 table {
+            width: 100%;
+            min-width: 1200px; border-collapse: collapse;
+            margin: 0 auto; font-size: 0.9em; background-color: #fff; table-layout: fixed;
+        }
+        #section1 th, #section1 td {
+            border: 1px solid #ddd;
+            padding: 5px; 
+            text-align: center;
+            vertical-align: middle; 
+            line-height: 1.2; 
+            word-break: keep-all;
+            height: 38px; box-sizing: border-box;
+            font-size: 13pt;
+        }
+        #section1 th { background-color: #f2f2f2; font-weight: bold;
+        }
+        #section1 caption {
+            font-size: 1.5em;
+            margin-bottom: 10px; font-weight: bold;
+            color: #333; text-decoration: underline;
+        }
+        
+        #section1 .sunday { background-color: initial !important;
+        }
+        #section1 .saturday { background-color: initial !important;
+        }
+        #section1 .holiday { 
+            background-color: initial !important;
+            font-weight: bold; 
+            color: #cc0000;
+        }
+        
+        #section1 .holiday td:not(:nth-child(1)):not(:nth-child(2)) {
+            color: #333;
+            font-weight: normal;
+        }
+        
+        #section1 .sub-day-info {
+            display: block;
+            font-size: 0.5em; 
+            line-height: 1.2;
+            font-weight: bold;
+            color: inherit; 
+        }
+        
+        #section1 .day-cell-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            font-size: 1em;
+        }
+        
+        #section1 .day-name-main {
+            font-weight: bold;
+            font-size: 1.2em; 
+            line-height: 1.2;
+        }
+        
+        #section1 .edit-mode {
+            position: relative;
+            padding: 2px; display: flex; flex-direction: column;
+            justify-content: center; height: 100%;
+            vertical-align: middle;
+        }
+        #section1 .edit-mode input {
+            width: calc(100% - 8px);
+            margin-bottom: 2px;
+            padding: 2px; box-sizing: border-box;
+        }
+        #section1 .edit-mode .cell-buttons { display: flex;
+            justify-content: space-around; margin-top: 2px; }
+            
+        #section1 .edit-mode .cell-buttons button {
+            padding: 3px 5px;
+            font-size: 0.7em; 
+            color: white; 
+            border: none;
+            border-radius: 3px; 
+            cursor: pointer; 
+            white-space: nowrap;
+            transition: background-color 0.15s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            flex-grow: 1; 
+            margin: 0 1px;
+        }
+        
+        #section1 .edit-mode .cell-buttons button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        #section1 .edit-mode .cell-buttons .btn-fixed { background-color: #007bff;
+        }
+        #section1 .edit-mode .cell-buttons .btn-fixed:hover:not(:disabled) { background-color: #0056b3;
+        }
+        #section1 .edit-mode .cell-buttons .btn-temp { background-color: #28a745;
+        }
+        #section1 .edit-mode .cell-buttons .btn-temp:hover { background-color: #1e7e34;
+        }
+        #section1 .edit-mode .cell-buttons .btn-highlight-am { background-color: #6f42c1;
+        }
+        #section1 .edit-mode .cell-buttons .btn-highlight-am:hover { background-color: #5a349c;
+        }
+        #section1 .edit-mode .cell-buttons .btn-highlight-pm { background-color: #fd7e14;
+        }
+        #section1 .edit-mode .cell-buttons .btn-highlight-pm:hover { background-color: #db6a0b;
+        }
+        #section1 .edit-mode .cell-buttons .btn-delete { background-color: #dc3545;
+        }
+        #section1 .edit-mode .cell-buttons .btn-delete:hover { background-color: #c82333;
+        }
+
+
+        #section1 .name-entry { 
+            display: block;
+            margin-top: 2px; 
+            margin-bottom: 2px; 
+            color: inherit; 
+            font-size: var(--worker-font-size); 
+        }
+        #section1 .hidden-x { color: white;
+        }
+        #section1 .name-entry.bold-name {
+            font-weight: bold;
+        }
+        #section1 table th:nth-child(1),
+        #section1 table td:nth-child(1),
+        #section1 table th:nth-child(2),
+        #section1 table td:nth-child(2) {
+            width: 4%;
+            min-width: 60px;
+            vertical-align: middle; 
+        }
+
+/* ================================================================= */
+/* [Section 1] 컨트롤 박스 UI 개선 (2025-10-31 최종 수정) */
+/* ================================================================= */
+
+/* 1. 조회설정: 년/월 입력칸 높이 통일 (버튼과 맞춤) */
+#section1 .controls input[type="number"] {
+    padding: 8px; 
+    font-size: 1em;
+}
+
+/* 2. [수정] '년도' 입력 박스 너비 확장 */
+#section1 .controls input#yearInput {
+    width: 90px;
+}
+
+/* 3. 노선설정: '노선 추가/수정' + '삭제' 버튼 2개 너비 동일하게 */
+#section1 .controls fieldset:nth-of-type(1) .control-group:nth-of-type(3) button {
+    flex: 1 1 auto; 
+}
+
+/* 4. 데이터관리(fieldset 3): 기본적으로 세로 정렬 */
+#section1 .controls fieldset:nth-of-type(3) .control-group {
+    flex-direction: column;
+    align-items: stretch;
+}
+#section1 .controls fieldset:nth-of-type(3) .control-group > * {
+    margin-bottom: 5px;
+}
+#section1 .controls fieldset:nth-of-type(3) .control-group > *:last-child {
+    margin-bottom: 0;
+}
+
+/* 5. [수정] '차량/근무' 선택 박스만 가로로 배열 */
+#section1 .controls fieldset:nth-of-type(3) .control-group:nth-of-type(2) {
+    flex-direction: row; /* 이 그룹만 가로로 */
+    align-items: center;
+    gap: 10px; /* 두 select 박스 사이 간격 */
+}
+#section1 .controls fieldset:nth-of-type(3) .control-group:nth-of-type(2) > select {
+    flex: 1 1 auto; /* 공간을 나눠 갖도록 */
+    margin-bottom: 0; /* 세로 마진 제거 */
+}
+
+/* 6. 차량설정(fieldset 4): '차량 수' 제외한 옵션들을 세로로 쌓기 */
+#section1 .controls fieldset:nth-of-type(4) .control-group:not(:first-of-type) {
+     flex-direction: column;
+    align-items: stretch;
+}
+#section1 .controls fieldset:nth-of-type(4) .control-group:not(:first-of-type) > * {
+    margin-bottom: 5px;
+}
+
+/* 7. [수정] 인쇄 섹션: 가로 정렬로 높이 축소 (세로 정렬 코드 모두 제거) */
+#section1 .controls .control-group[style*="border-top"] {
+    flex-direction: row; /* '인쇄' 버튼과 'div'를 가로로 */
+    align-items: center; /* '인쇄' 버튼과 'div'를 세로 중앙 정렬 */
+    flex-wrap: wrap; /* 모바일에서 줄바꿈되도록 */
+}
+#section1 .controls .control-group[style*="border-top"] > div[style*="flex-direction: row"] {
+    flex-direction: row !important; /* '여백'과 '글자크기'를 가로로 */
+    align-items: center !important; /* 내부 항목들도 세로 중앙 정렬 (inline style 덮어쓰기) */
+    gap: 10px !important; 
+    margin-left: 10px !important; /* '인쇄' 버튼과 여백 그룹 사이 간격 (inline 5px 덮어쓰기) */
+    flex-wrap: wrap; /* 모바일에서 줄바꿈되도록 */
+}
+
+/* 8. [추가] 인쇄 여백 박스(좌/우) 너비 확장 */
+#section1 .controls select.margin-select {
+    width: 60px; /* 너비 확장 */
+    min-width: 60px;
+    padding: 4px; /* 패딩 추가 */
+    font-size: 0.95em; /* 폰트 크기 살짝 조절 */
+}
+/* ================================================================= */
+/* 컨트롤 박스 UI 개선 종료 */
+/* ================================================================= */
+
+
+         @media screen and (max-width: 1400px) {
+            #section1 .controls {
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            #section1 .controls {
+                grid-template-columns: 1fr;
+            }
+            #section1 .controls .control-group { flex-direction: column; align-items: stretch;
+            }
+            #section1 .controls input[type="text"], #section1 .controls input[type="number"], #section1 .controls select,
+            #section1 .controls input#companyInput, #section1 .controls select#typeSelect { 
+                width: 100%;
+                flex-basis: auto;
+            }
+        }
+
+        /* ================================================================= */
+        /* [Section 2] 승무 일지 Styles (새로운 배차표-25.html) */
+        /* ================================================================= */
+
+        /* S2의 body 스타일을 #section2 컨테이너에 적용 */
+        #section2 {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 10px; 
+            color: #333;
+            font-size: 9pt; /* S2의 기본 폰트 크기 */
+        }
+
+        #section2 .journal-container {
+            background-color: white;
+            padding: 15px; 
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            max-width: 980px; 
+            margin: 10px auto;
+        }
+
+        #section2 .header-title {
+            text-align: center;
+            font-size: 1.88em; 
+            font-weight: bold;
+            color: #0056b3;
+            padding-bottom: 4px;
+            margin-bottom: 4px;
+            border-bottom: 2px solid #0056b3;
+        }
+
+        #section2 .title-area {
+            display: flex;
+            justify-content: space-between; 
+            align-items: center;
+            margin: 8px 0 10px 0;
+            padding: 0 5px; 
+        }
+
+        #section2 .title-left {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        #section2 .main-title {
+            font-size: 1.44em; 
+            font-weight: bold;
+            color: #333;
+            display: inline-block;
+        }
+        
+        #section2 .date-display {
+            font-size: 1em; 
+            color: #666;
+            margin-top: 2px;
+        }
+        
+        #section2 .options-right {
+            display: flex;
+            align-items: center;
+            gap: 10px; 
+        }
+        
+        #section2 .font-selector-container {
+            font-size: 0.94em; 
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        #section2 .font-selector-container label {
+            margin-right: 3px;
+            font-weight: normal;
+        }
+        
+        #section2 #font-size-select {
+            padding: 1px 3px;
+            font-size: 1em;
+            height: 20px;
+        }
+        
+        #section2 .dispatch-buttons-container {
+            display: flex;
+            align-items: center;
+            font-size: 0.94em; 
+            border: 1px solid #ced4da;
+            border-radius: 3px;
+            padding: 2px;
+        }
+
+        #section2 .dispatch-buttons-container label {
+            margin: 0 8px;
+            font-weight: normal;
+            color: #333;
+        }
+
+        #section2 .dispatch-button {
+            padding: 3px 6px;
+            margin-left: -1px; 
+            font-size: 1em; 
+            background-color: #f8f9fa;
+            color: #333;
+            border: 1px solid #ced4da;
+            border-radius: 0;
+            cursor: pointer;
+            transition: background-color 0.1s;
+        }
+
+        #section2 .dispatch-button:first-of-type {
+            border-top-left-radius: 2px;
+            border-bottom-left-radius: 2px;
+            margin-left: 0;
+        }
+        #section2 .dispatch-button:last-of-type {
+            border-top-right-radius: 2px;
+            border-bottom-right-radius: 2px;
+        }
+
+        #section2 .dispatch-button:hover {
+            background-color: #e2e6ea;
+        }
+
+        #section2 .dispatch-button.active {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+            z-index: 1; 
+        }
+
+        #section2 .print-button {
+            padding: 4px 10px; 
+            font-size: 0.94em;
+            font-weight: bold;
+            color: white;
+            background-color: #007bff;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        #section2 .print-button:hover {
+            background-color: #0056b3;
+        }
+        
+        #section2 .date-header {
+            display: none;
+        }
+
+        #section2 .route-section {
+            margin-bottom: 15px; 
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        #section2 .route-header-flex {
+            display: flex;
+            justify-content: space-between; 
+            align-items: flex-start; 
+            background-color: #e6f7ff;
+            padding: 5px 8px;
+            border-bottom: 1px solid #ced4da;
+        }
+        
+        #section2 .route-title-group {
+            display: flex;
+            align-items: center;
+        }
+
+        #section2 .route-name-text {
+            font-size: 1.22em; 
+            font-weight: bold;
+            color: #0056b3;
+            white-space: nowrap; 
+            padding-right: 15px; 
+        }
+        
+        #section2 .load-button-container {
+            display: flex;
+            align-items: center;
+        }
+        #section2 .load-button {
+            background-color: #38b43d; 
+            color: white;
+            border: none;
+            padding: 3px 8px;
+            margin-left: 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.88em;
+            white-space: nowrap;
+        }
+        #section2 .load-button:hover {
+            background-color: #2e8b34;
+        }
+
+        #section2 .schedule-options {
+            display: flex;
+            gap: 15px;
+            font-size: 0.9em;
+        }
+
+        #section2 .schedule-options select {
+            font-size: 1em;
+            height: 20px;
+            padding: 0 2px;
+            margin: 2px 0;
+            box-sizing: border-box;
+            vertical-align: middle;
+        }
+
+        #section2 .schedule-options input[type="number"] {
+            width: 30px; 
+            height: 18px; 
+            text-align: center;
+            font-size: 0.9em;
+            padding: 0;
+            margin: 0 1px;
+            border: 1px solid #ccc;
+        }
+
+        #section2 .am-options, #section2 .pm-options {
+            border: 1px solid #ddd;
+            padding: 3px 5px;
+            background-color: #f7f9fb;
+            border-radius: 3px;
+        }
+
+        #section2 .am-options span, #section2 .pm-options span {
+            font-weight: bold;
+        }
+        
+        #section2 .settings-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding-top: 5px; 
+        }
+
+        #section2 .setting-button {
+            padding: 3px 5px;
+            font-size: 0.88em;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            white-space: nowrap;
+            transition: background-color 0.1s;
+        }
+
+        #section2 .apply-button {
+            background-color: #d4edda; 
+            border-color: #c3e6cb;
+        }
+
+        #section2 .apply-button:hover {
+            background-color: #c3e6cb;
+        }
+
+        #section2 .reset-button {
+            background-color: #f8d7da; 
+            border-color: #f5c6cb;
+        }
+
+        #section2 .reset-button:hover {
+            background-color: #f5c6cb;
+        }
+        
+        #section2 table { /* S2의 테이블 스타일 */
+            width: 100%; 
+            border-collapse: collapse;
+            table-layout: fixed; 
+            font-size: 0.88em; 
+            background-color: #fff;
+        }
+
+        #section2 th, #section2 td { /* S2의 셀 스타일 */
+            border: 1px solid #ddd;
+            padding: 2px 1px; 
+            text-align: center;
+            vertical-align: middle;
+            height: 20px; 
+            box-sizing: border-box;
+            line-height: 1.1;
+            position: relative;
+        }
+
+        #section2 th {
+            background-color: #e9ecef;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        #section2 .car-number-cell {
+            font-weight: bold;
+            font-size: 1.4em; 
+            cursor: pointer;
+            padding: 0;
+        }
+
+        #section2 .car-display {
+            padding: 2px 1px;
+            height: 100%;
+            width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #section2 .car-controls {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #fff;
+            padding: 1px;
+            box-sizing: border-box;
+            gap: 1px;
+            z-index: 10;
+            border: 2px solid #ffc107; 
+        }
+
+        #section2 .car-controls select {
+            width: 95%;
+            font-size: 0.8em;
+            padding: 0;
+            margin: 0;
+            height: 14px;
+        }
+
+        #section2 .car-controls button {
+            width: 48%;
+            font-size: 0.7em;
+            padding: 0;
+            margin: 0;
+            height: 14px;
+            line-height: 1;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            background-color: #f0f0f0;
+        }
+
+        #section2 .car-controls div {
+            display: flex;
+            justify-content: space-between;
+            width: 95%;
+            margin-top: 1px;
+        }
+        
+        #section2 .journal-table th:nth-child(1),
+        #section2 .journal-table th:nth-child(9) {
+            font-size: 1.136em; 
+        }
+        
+        #section2 input[type="number"], #section2 input[type="text"] {
+            font-size: 1em; 
+            padding: 0;
+            margin: 0;
+            width: 100%;
+            height: 18px; 
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            text-align: center;
+            -moz-appearance: textfield;
+        }
+        
+        #section2 .journal-table colgroup col:nth-child(1), #section2 .journal-table colgroup col:nth-child(9) { width: 5.4%; } 
+        #section2 .journal-table colgroup col:nth-child(8), #section2 .journal-table colgroup col:nth-child(16) { width: 5.4%; } 
+        #section2 .journal-table colgroup col:nth-child(2), #section2 .journal-table colgroup col:nth-child(3), #section2 .journal-table colgroup col:nth-child(4), 
+        #section2 .journal-table colgroup col:nth-child(5), #section2 .journal-table colgroup col:nth-child(6), #section2 .journal-table colgroup col:nth-child(7), 
+        #section2 .journal-table colgroup col:nth-child(10), #section2 .journal-table colgroup col:nth-child(11), #section2 .journal-table colgroup col:nth-child(12),
+        #section2 .journal-table colgroup col:nth-child(13), #section2 .journal-table colgroup col:nth-child(14), #section2 .journal-table colgroup col:nth-child(15) { width: 5.4%; }
+        
+        #section2 .driver-name {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 0;
+            margin: 0;
+            border: none;
+            background: transparent;
+            text-align: center;
+            line-height: 1.1em; 
+            min-height: 18px; 
+            cursor: pointer;
+            display: block;
+        }
+        
+        #section2 .driver-input {
+            resize: none; 
+            height: 18px; 
+            overflow: hidden;
+            border: 1px solid #007bff; 
+            background-color: #fff !important;
+            font-size: 1em;
+            box-sizing: border-box;
+            width: 100%;
+            padding: 0;
+            margin: 0;
+            text-align: center;
+        }
+
+        #section2 .edit-controls {
+            display: flex;
+            justify-content: center;
+            gap: 2px;
+            padding: 1px 0;
+            margin-top: -1px; 
+        }
+        
+        #section2 .edit-controls button {
+            flex-grow: 1;
+            padding: 0;
+            margin: 0;
+            font-size: 0.8em;
+            height: 18px;
+            line-height: 1;
+            cursor: pointer;
+            border-radius: 2px;
+            border: 1px solid #ccc;
+        }
+        
+        #section2 .edit-controls button:first-child { background-color: #f44336; color: white; border-color: #d32f2f; }
+        #section2 .edit-controls button:last-child { background-color: #4CAF50; color: white; border-color: #388e3c; }
+
+        #section2 .hidden {
+            display: none !important;
+        }
+        
+        /* ================================================================= */
+        /* [공통] 인쇄 스타일 (S1, S2 통합) */
+        /* ================================================================= */
+        @media print {
+            
+            /* --- START: Scoped Printing --- */
+            #section1, #section2, .divider {
+                display: none;
+            }
+            body.printing-section1 #section1 {
+                display: block;
+            }
+            body.printing-section2 #section2 {
+                display: block;
+            }
+            /* --- END: Scoped Printing --- */
+
+
+            /* ----- S1 인쇄 규칙 ----- */
+            body.printing-section1 @page {
+                size: A4;
+                margin: 10mm;
+                margin-left: var(--print-margin-left, 15mm);
+                margin-right: var(--print-margin-right, 5mm);
+            }
+            body.printing-section1 { background-color: white;
+                margin: 0; padding: 0; -webkit-print-color-adjust: exact; }
+            
+            body.printing-section1 .controls { display: none;
+            }
+            body.printing-section1 #scheduleContainer { box-shadow: none; margin: 0;
+                padding: 0; }
+            body.printing-section1 #section1 table { width: 100%;
+                min-width: unset; font-size: 0.8em; border: 1px solid #000; table-layout: fixed;
+            }
+            body.printing-section1 #section1 th, 
+            body.printing-section1 #section1 td { padding: 1px;
+                height: auto; word-break: break-all; vertical-align: top; border: 1px solid #000;
+            }
+            
+            body.printing-section1 #section1 table th:nth-child(1), 
+            body.printing-section1 #section1 table td:nth-child(1),
+            body.printing-section1 #section1 table th:nth-child(2), 
+            body.printing-section1 #section1 table td:nth-child(2) { 
+                width: 4%;
+                vertical-align: middle; 
+            }
+            
+            body.printing-section1 #section1 .sub-day-info { font-size: 0.5em;
+            } 
+            body.printing-section1 #section1 .day-name-main { font-size: 1em;
+            }
+            
+            body.printing-section1 #section1 .sunday { background-color: initial !important;
+            }
+            body.printing-section1 #section1 .saturday { background-color: initial !important;
+            }
+            body.printing-section1 #section1 .holiday { 
+                background-color: initial !important;
+                font-weight: bold; 
+                color: #cc0000; 
+            }
+            body.printing-section1 #section1 .holiday td:not(:nth-child(1)):not(:nth-child(2)) {
+                color: #000;
+                font-weight: normal;
+            }
+
+            /* ----- S2 인쇄 규칙 ----- */
+            body.printing-section2 @page {
+                size: A4 landscape;
+                margin: 6mm; 
+            }
+            body.printing-section2 { 
+                background-color: white; 
+                padding: 0; 
+                margin: 0; 
+                font-size: 9pt;
+                color: #000;
+            }
+            body.printing-section2 #section2 .journal-container {
+                box-shadow: none;
+                border-radius: 0;
+                padding: 0;
+                margin: 0;
+                max-width: 100%;
+            }
+            
+            body.printing-section2 #section2 .print-button, 
+            body.printing-section2 #section2 .font-selector-container, 
+            body.printing-section2 #section2 .dispatch-buttons-container,
+            body.printing-section2 #section2 .driver-input, 
+            body.printing-section2 #section2 .edit-controls, 
+            body.printing-section2 #section2 .schedule-options, 
+            body.printing-section2 #section2 .load-button-container,
+            body.printing-section2 #section2 .car-controls,
+            body.printing-section2 #section2 .settings-controls {
+                         display: none !important;
+            }
+            
+            body.printing-section2 #section2 table { font-size: 7pt; }
+            body.printing-section2 #section2 th, 
+            body.printing-section2 #section2 td { 
+                height: 16px;
+                padding: 1px 0px; 
+                border: 1px solid #000;
+            }
+            
+            body.printing-section2 #section2 .header-title, 
+            body.printing-section2 #section2 .main-title, 
+            body.printing-section2 #section2 .route-name-text { color: #000 !important;
+            }
+            
+            body.printing-section2 #section2 .route-header-flex { background-color: #eee !important;
+                border-bottom: 1px solid #000 !important; }
+            
+            body.printing-section2 #section2 input[type="number"], 
+            body.printing-section2 #section2 input[type="text"] {
+                border: none;
+                background: transparent;
+                padding: 0;
+                height: auto;
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                appearance: none;
+            }
+
+            body.printing-section2 #section2 .driver-name, 
+            body.printing-section2 #section2 .car-display {
+                display: flex !important;
+                justify-content: center;
+                align-items: center;
+                border: none !important;
+                cursor: default;
+                height: 100%;
+                width: 100%;
+            }
+            body.printing-section2 #section2 .car-number-cell {
+                padding: 2px 1px;
+            }
+        }
+#section2 .s2-work-hours-select {
+            font-size: 1em; 
+            padding: 0;
+            margin: 0;
+            width: 100%;
+            height: 18px; 
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            text-align: center;
+            background-color: white; 
+            -moz-appearance: none; /* 기본 화살표 숨기기 */
+            -webkit-appearance: none; /* 기본 화살표 숨기기 */
+            appearance: none;
+        }
+/* ================================================================= */
+        /* [공통] 인쇄 규칙 (S1 컨트롤 박스 숨기기) */
+        /* ================================================================= */
+        @media print {
+            body.printing-section1 .controls {
+                display: none !important;
+            }
+        }
+    </style>
+</head> 
+<body>
+
+    <div id="section1">
+        <div class="controls">
+
+            <fieldset>
+                <legend>회사 / 노선 정보</legend>
+                
+                <div class="control-group">
+                   <label for="companyInput">회사명:</label>
+                    <input type="text" id="companyInput" placeholder="예: 와룡운수">
+                </div>
+
+                <div class="control-group">
+                    <label for="typeSelect">버스 종류 선택:</label>
+                       <select id="typeSelect">
+                        <option value="마을">마을</option>
+                        <option value="버스">버스</option>
+                    </select>
+                </div>
+  
+               
+                <div class="control-group">
+                    <label for="routeInput">노선 번호:</label>
+                    <input type="text" id="routeInput" placeholder="예: 종로08">
+                    <button onclick="addOrUpdateRoute()">노선 추가/수정</button>
+                    <button onclick="deleteRoute()" class="btn-danger">선택 노선 삭제</button>
+                </div>
+                
+                 <div class="control-group">
+                    <label for="routeNavigateSelect">관련 노선 이동:</label>
+                                   <select id="routeNavigateSelect" class="route-navigate-select" onchange="handleRouteSelectChange(this.value)"></select>
+                </div>
+    
+             </fieldset>
+
+            <fieldset>
+                <legend>조회 설정</legend>
+                <div class="control-group">
+                           <label for="yearInput">년도:</label>
+                     <input type="number" id="yearInput" value="2025">
+                    <label for="monthInput">월:</label>
+                    <input type="number" id="monthInput" value="10">
+                    
+<button onclick="generateSchedule()">생성</button>
+                </div>
+                 <div class="control-group">
+                    <input type="radio" id="option1" name="displayOption" value="1">
+                    <label for="option1">1일 ~ 15일</label>
+                   
+ <input type="radio" id="option2" name="displayOption" value="2" checked>
+                    <label for="option2">16일 ~ 말일</label>
+                </div>
+                <div class="control-group holiday-option-group">
+                    <label for="holidaySelect">법정휴무일:</label>
+                
+    <select id="holidaySelect">
+                         <option value="apply">적용</option>
+                        <option value="ignore">미적용</option>
+                    </select>
+                </div>
+         
+               
+                <div class="control-group" style="border-top: 1px solid #dee2e6; padding-top: 10px; margin-top: 5px;">
+                    <button onclick="printPage()">인쇄</button>
+                    
+                    <div style="display: flex; flex-direction: row; gap: 10px; margin-left: 5px; align-items: flex-start; flex-grow: 1;">
+
+                        <div style="display: flex; flex-direction: column; gap: 4px; align-items: stretch; padding: 2px 5px; border: 1px solid #ced4da; border-radius: 4px; background-color: #f8f9fa; flex-shrink: 0;">
+                            
+                            <div style="display: flex; align-items: center; gap: 2px; font-size: 0.9em; justify-content: space-between;">
+                                <label for="marginLeftSelect">좌측:</label>
+                                <select id="marginLeftSelect" class="margin-select">
+                                     <option value="0">0</option><option value="10" selected>10</option><option value="20">20</option><option value="30">30</option><option value="40">40</option>
+                                </select>
+                            </div>
+                         
+    
+                            <div style="display: flex; align-items: center; gap: 2px; font-size: 0.9em; justify-content: space-between;">
+                                <label for="marginRightSelect">우측:</label>
+                                <select id="marginRightSelect" class="margin-select">
+                                     <option value="0">0</option><option value="10">10</option><option value="20">20</option><option value="30">30</option><option value="40">40</option>
+                                </select>
+                            </div>
+                         </div>
+ 
+                                               
+                        <div style="display: flex; align-items: center; gap: 3px; font-size: 0.9em; padding: 2px 5px; background-color: #eaf4ff; border-radius: 4px; border: 1px solid #b3d7ff; flex-grow: 1; white-space: nowrap;">
+                           <label for="fontSizeInput" style="font-weight: bold;">글자크기조정:</label>
+                           <input type="number" id="fontSizeInput" class="margin-select" value="13" min="8" max="20" onchange="applyFontSize(this.value + 'pt')" style="width: 45px; padding: 1px 3px; box-sizing: border-box; font-weight: bold;">
+                        </div>
+
+                    </div>
+                    
+                </div>
+              
+  </fieldset>
+
+            <fieldset>
+                <legend>근무전체데이타관리옵션</legend> <div class="control-group">
+                    <select id="scheduleActionsSelect" class="action-select" onchange="handleScheduleActions()">
+                        <option value="">근무전체데이타관리옵션</option> <option value="reset">현재 노선 초기화</option>
+                        <option value="backup">전체 데이터 백업</option>
+                        <option value="restore">전체 데이터 복구</option>
+                    </select>
+                    <input type="file" id="restoreFile" style="display: none;" onchange="restoreScheduleData(this.files[0])" accept=".json">
+                
+    
+                    <button onclick="calculateWorkdays()">근무일수계산</button>
+                </div>
+                
+                <div class="control-group">
+                     <select id="vehicleSelect" class="vehicle-select">
+                                          <option value="">차량 선택</option>
+                        </select>
+                    <select id="workTypeSelect" class="work-type-select" onchange="handleWorkTypeChange()">
+                         <option value="">근무조건 선택</option>
+                                           <option value="normal">3/3 근무</option>
+                        <option value="biweekly">격주 근무</option>
+                        <option value="five_day">5일근무</option> </select>
+                </div>
+
+           
+           <div style="border-top: 1px solid #dee2e6; padding-top: 10px; margin-top: 5px;"></div> 
+                
+                <div class="control-group">
+                    <button onclick="alert('승무일지 및 배차관리 로직을 추가할 예정입니다.')">승무일지 및 배차관리</button>
+                    <button onclick="alert('근무자명단관리 로직을 추가할 예정입니다.')">근무자명단관리</button>
+           
+   </div>
+                </fieldset>
+            
+            <fieldset>
+                <legend>차량 설정 (현재 노선)</legend>
+                <div class="control-group">
+                     <label for="vehicleCountInput">차량 수:</label>
+                    <input type="number" id="vehicleCountInput" value="11" min="1" max="50" onchange="handleVehicleCountChange(this.value)">
+                    <button onclick="saveRouteConfig()">차량 번호 저장</button>
+                </div>
+                <div class="control-group" style="flex-direction: column; align-items: flex-start;">
+                    <label>차량 번호 (총 <span id="vehicleCountDisplay">0</span>대):</label>
+                    <div id="vehicleInputsContainer">
+                        </div>
+                </div>
+            </fieldset>
+  
+           
+        </div>
+
+        <div id="scheduleContainer">
+            <table>
+                <caption id="tableCaption">근무 현황표를 생성해주세요.</caption>
+                <thead id="scheduleHeader">
+                </thead>
+         
+               <tbody id="scheduleBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <hr class="divider">
+
+    <div id="section2">
+        <div class="journal-container">
+
+            <div class="header-title">와룡운수 승무일지</div>
+
+             <div class="title-area">
+      
+                     <div class="title-left">
+                    <div class="main-title">승 무 일 지 (일일)</div>
+                    <div id="today-date" class="date-display"></div>
+                </div>
+                
+          
+                 <div class="options-right">
+                    
+                    <div id="dispatch-buttons" class="dispatch-buttons-container">
+                         <label>출차순서:</label>
+                        <button type="button" class="dispatch-button" 
+onclick="s2_changeDispatchOrder('1')">1. 올림차순</button>
+                        <button type="button" class="dispatch-button" onclick="s2_changeDispatchOrder('2')">2. 내림차순</button>
+                        <button type="button" class="dispatch-button" onclick="s2_changeDispatchOrder('3')">3. 수동입력</button>
+                        <button type="button" class="dispatch-button" onclick="s2_changeDispatchOrder('4')">4. 랜덤(한달)</button>
+                    </div>
+
+                    <div class="font-selector-container">
+                        <label for="font-size-select">크기:</label>
+                        <select id="font-size-select" onchange="s2_changeFontSize(this.value)">
+                                           <option value="8">8pt</option>
+                            <option value="9" selected>9pt</option> 
+                            <option value="10">10pt</option> <option value="11">11pt</option>
+                       <option value="12">12pt</option>
+                            <option value="13">13pt</option>
+                        </select>
+                    </div>
+
+            <div style="display: flex; gap: 5px;">
+                        <button type="button" onclick="s2_backupLogData()" class="print-button" style="background-color: #28a745;">일지 백업</button>
+                        <button type="button" onclick="s2_triggerRestore()" class="print-button" style="background-color: #fd7e14;">일지 복구</button>
+                        <input type="file" id="s2_restoreFile" style="display: none;" onchange="s2_restoreLogData(this.files[0])" accept=".json">
+                    </div>
+
+           <button onclick="printSection2()" class="print-button">인쇄하기</button>
+           
+                    </div>
+            </div>
+            
+             <div class="date-header">2025년 10월 16일 목요일</div> 
+
+             <div id="dispatch-log-body">
+                </div>
+
+   
+           </div>
+    </div>
+<script>
+        /* ================================================================= */
+        /* [공통] 데이터 공유 로직 (Global) */
+        /* ================================================================= */
+        window.sharedData = {
+          save(key, value) {
+            localStorage.setItem(key, JSON.stringify(value));
+          },
+          load(key) {
+            const data = localStorage.getItem(key);
+            try { return JSON.parse(data); } catch { return null; }
+          },
+          merge(key, newData) {
+            const current = this.load(key) || {};
+            const merged = { ...current, ...newData };
+            this.save(key, merged);
+            return merged;
+          }
+        };
+
+        // 두 섹션이 공유하는 마스터 스토리지 키
+        window.MASTER_STORAGE_KEY = 'busScheduleManagerData';
+        
+        /* localStorage 변경 감시 (S1->S2, S2->S1 동기화) */
+        window.addEventListener('storage', e => {
+          if (e.key === window.MASTER_STORAGE_KEY) {
+            console.log('데이터 동기화 감지:', e.key);
+            
+            // ★ S1에서 데이터 변경 시 S2(승무일지)도 새로고침
+            if (typeof initializeDispatchLog === 'function') {
+                 initializeDispatchLog();
+            }
+            
+            // ★ S2에서 데이터 변경 시 S1(현황표)도 새로고침 (데이터만 다시 로드)
+            if (typeof loadMasterData === 'function' && typeof generateSchedule === 'function') {
+                // S1의 데이터를 다시 로드하고 S1 테이블을 다시 그립니다.
+                loadMasterData();
+                // S1의 전역 변수(fixedScheduleData 등)를 S1 데이터로 갱신
+                if (currentRoute && allRoutesData.routes[currentRoute]) {
+                    const routeData = allRoutesData.routes[currentRoute];
+                    fixedScheduleData = routeData.fixedSchedule;
+                    tempScheduleData = routeData.tempSchedule;
+                    workTypeConfig = routeData.workTypeConfig;
+                    currentVehicleColumns = routeData.vehicleColumns || [];
+                }
+                generateSchedule();
+            }
+          }
+        });
+
+        /* ================================================================= */
+        /* [Section 1] 근무 현황표 JavaScript */
+        /* ================================================================= */
+        
+        // --- S1: 마스터 데이터 관리 ---
+        let allRoutesData = {
+            currentRoute: null, 
+            routes: {} 
+           };
+
+        let currentRoute = null;
+        let currentVehicleColumns = [];
+        let fixedScheduleData = {};
+        let tempScheduleData = {};
+        let workTypeConfig = {};
+        
+        let scheduleData = {}; 
+        // 2025년 공휴일 데이터 (이름 포함)
+        const publicHolidays2025 = {
+            '01-01': '신정', '01-28': '설날', '01-29': '설날', '01-30': '설날',
+            '03-01': '삼일절', '05-05': '어린이날', '05-06': '부처님오신날',
+            '06-06': '현충일', '08-15': '광복절', '10-05': '추석',
+            '10-06': '추석', '10-07': '추석', '10-09': '한글날', '12-25': '성탄절'
+        };
+
+        // --- S1: 핵심 로직 함수 ---
+
+        function loadMasterData() {
+            const storedData = window.sharedData.load(window.MASTER_STORAGE_KEY);
+            if (storedData) {
+                allRoutesData = storedData;
+                currentRoute = allRoutesData.currentRoute || Object.keys(allRoutesData.routes)[0];
+            } else {
+                allRoutesData = { currentRoute: null, routes: {} };
+                currentRoute = null;
+            }
+            if (!currentRoute || !allRoutesData.routes[currentRoute]) {
+                currentRoute = Object.keys(allRoutesData.routes)[0] || null; 
+                allRoutesData.currentRoute = currentRoute;
+            }
+        }
+
+        function saveMasterData() {
+            allRoutesData.currentRoute = currentRoute;
+            window.sharedData.save(window.MASTER_STORAGE_KEY, allRoutesData); 
+        }
+
+        function populateRouteSelect() {
+            const routeSelect = document.getElementById('routeNavigateSelect');
+            routeSelect.innerHTML = ''; 
+            const routeNames = Object.keys(allRoutesData.routes);
+
+            if (routeNames.length === 0) {
+                routeSelect.innerHTML = '<option value="">노선을 추가하세요</option>';
+                return;
+            }
+            
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = '--- 노선 이동 ---';
+            routeSelect.appendChild(defaultOption);
+            routeNames.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                if (name === currentRoute) {
+                    option.selected = true;
+                }
+                routeSelect.appendChild(option);
+            });
+        }
+
+        function loadRouteData(routeName) {
+            const routeNavSelect = document.getElementById('routeNavigateSelect');
+            if (!routeName || !allRoutesData.routes[routeName]) {
+                // UI 초기화
+                document.getElementById('routeInput').value = '';
+                document.getElementById('companyInput').value = '';
+                document.getElementById('typeSelect').value = '마을';
+                document.getElementById('vehicleCountInput').value = 0;
+                handleVehicleCountChange(0);
+                
+                fixedScheduleData = {};
+                tempScheduleData = {};
+                workTypeConfig = {};
+                currentVehicleColumns = [];
+                currentRoute = null;
+                allRoutesData.currentRoute = null;
+                
+                updateVehicleSelect();
+                if (routeNavSelect) {
+                    routeNavSelect.value = '';
+                }
+                saveMasterData(); 
+                generateSchedule(); 
+                return;
+            }
+
+            currentRoute = routeName;
+            allRoutesData.currentRoute = routeName;
+            const routeData = allRoutesData.routes[routeName];
+
+            // ★ 중요: 전역 변수 S1 데이터를 로드
+            fixedScheduleData = routeData.fixedSchedule;
+            tempScheduleData = routeData.tempSchedule;
+            workTypeConfig = routeData.workTypeConfig;
+            currentVehicleColumns = routeData.vehicleColumns || [];
+
+            document.getElementById('routeInput').value = routeName;
+            document.getElementById('companyInput').value = routeData.companyName || '';
+            document.getElementById('typeSelect').value = routeData.type || '마을';
+            document.getElementById('vehicleCountInput').value = currentVehicleColumns.length;
+
+            handleVehicleCountChange(currentVehicleColumns.length);
+            
+            updateVehicleSelect();
+            if (routeNavSelect) {
+                routeNavSelect.value = routeName;
+            }
+            
+            // loadRouteData에서는 저장을 하지 않음 (데이터 변경이 없으므로)
+            generateSchedule(); 
+        }
+
+        // ######################################################################
+        // ### "오늘 날짜 자동 배정" 기능이 이 함수에 추가되었습니다 ###
+        // ######################################################################
+        function addOrUpdateRoute() {
+            const routeName = document.getElementById('routeInput').value.trim();
+            if (!routeName) {
+                alert('노선 번호를 입력하세요.');
+                return;
+            }
+
+            const companyName = document.getElementById('companyInput').value.trim();
+            const type = document.getElementById('typeSelect').value;
+            
+            if (!allRoutesData.routes[routeName]) {
+                // 새 노선 추가
+                allRoutesData.routes[routeName] = {
+                    companyName: companyName,
+                    type: type,
+                    vehicleColumns: ['차량1'], 
+                    fixedSchedule: {},
+                    tempSchedule: {},
+                    workTypeConfig: {}
+                };
+                alert(`새 노선 [${routeName}]이 추가되었습니다. 차량 수와 차량 번호를 설정하세요.`);
+            } else {
+                // 기존 노선 정보 업데이트 (회사명, 종류만)
+                allRoutesData.routes[routeName].companyName = companyName;
+                allRoutesData.routes[routeName].type = type;
+                alert(`[${routeName}] 노선 정보 (회사명, 종류)가 수정되었습니다.`);
+            }
+
+            currentRoute = routeName;
+            // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+            // ★ S1: 사용자가 요청한 '오늘 날짜 자동 배정' 로직 추가
+            // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+            try {
+                 const today = new Date().toISOString().slice(0, 10);
+                const routeData = allRoutesData.routes[routeName];
+                const scheduleToUpdate = routeData.tempSchedule;
+                if (!scheduleToUpdate[today]) {
+                    scheduleToUpdate[today] = {};
+                }
+
+                const firstVehicle = routeData.vehicleColumns.find(v => v && v !== '미입력');
+                if (firstVehicle) {
+                    // 6. 오늘 날짜, 첫 번째 차량에 "자동배정" 텍스트를 임시 저장 (이미 있지 않은 경우에만)
+                    if (!scheduleToUpdate[today][firstVehicle]) {
+                        const namesToSave = [{ text: '자동배정', bold: true }, { text: '자동배정', bold: true }];
+                        scheduleToUpdate[today][firstVehicle] = namesToSave;
+                        
+                        console.log(`[자동배정] ${today} 날짜의 ${firstVehicle} 차량에 '자동배정'을 임시 저장했습니다.`);
+                    }
+                }
+            } catch (e) {
+                console.error("오늘 날짜 자동 배정 중 오류 발생:", e);
+            }
+            // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+            
+            saveMasterData();
+            populateRouteSelect(); 
+            loadRouteData(routeName);
+        }
+        // ######################################################################
+        // ### 기능 추가 완료 ###
+        // ######################################################################
+
+        function deleteRoute() {
+            const routeName = document.getElementById('routeNavigateSelect').value;
+            if (!routeName) {
+                alert('삭제할 노선을 [관련 노선 이동] 드롭다운에서 선택하세요.');
+                return;
+            }
+
+            if (confirm(`[${routeName}] 노선을 정말로 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`)) {
+                delete allRoutesData.routes[routeName];
+                const newRouteToLoad = Object.keys(allRoutesData.routes)[0] || null;
+                
+                currentRoute = newRouteToLoad; 
+                allRoutesData.currentRoute = newRouteToLoad; 
+
+                saveMasterData();
+                populateRouteSelect(); 
+                loadRouteData(newRouteToLoad); 
+                
+                alert(`[${routeName}] 노선이 삭제되었습니다.`);
+            }
+        }
+
+
+        function saveRouteConfig() {
+            if (!currentRoute) {
+                alert('먼저 노선을 선택하거나 추가하세요.');
+                return;
+            }
+            const routeData = allRoutesData.routes[currentRoute];
+            if (!routeData) {
+                alert('현재 노선에 대한 데이터가 없습니다.');
+                return;
+            }
+
+            const inputs = document.querySelectorAll('#vehicleInputsContainer input');
+            const newVehicleColumns = [];
+            inputs.forEach(input => {
+                newVehicleColumns.push(input.value.trim() || '미입력');
+            });
+            routeData.vehicleColumns = newVehicleColumns;
+            currentVehicleColumns = newVehicleColumns; 
+
+            saveMasterData();
+            updateVehicleSelect(); 
+            generateSchedule(); 
+            
+            alert(`[${currentRoute}] 노선의 차량 번호가 저장되었습니다.`);
+        }
+
+        function handleVehicleCountChange(countStr) {
+            const count = parseInt(countStr) || 0;
+            document.getElementById('vehicleCountDisplay').textContent = count;
+            const container = document.getElementById('vehicleInputsContainer');
+            container.innerHTML = ''; 
+
+            container.style.flexDirection = 'row'; 
+            container.style.alignItems = 'unset';
+            const existingColumns = (currentRoute && allRoutesData.routes[currentRoute]) 
+                                    ? allRoutesData.routes[currentRoute].vehicleColumns 
+                                    : [];
+            for (let i = 0; i < count; i++) {
+                const input = document.createElement('input');
+                input.type = 'text';
+                
+                const existingValue = existingColumns[i] || '';
+
+                if (existingValue === '미입력') {
+                    input.placeholder = '미입력';
+                    input.value = '';
+                } else {
+                    input.placeholder = `차량 ${i + 1}`;
+                    input.value = existingValue;
+                }
+                
+                container.appendChild(input);
+            }
+        }
+        
+        function updateVehicleSelect() {
+            const vehicleSelect = document.getElementById('vehicleSelect');
+            vehicleSelect.innerHTML = '<option value="">차량 선택</option>';
+            
+            if (currentVehicleColumns.length > 0) {
+                 vehicleSelect.innerHTML += '<option value="ALL_VEHICLES" style="font-weight:bold; background-color:#e0e0e0;">--- 전체차량 ---</option>';
+            }
+
+            currentVehicleColumns.forEach(colName => {
+                if(colName && colName !== '미입력') {
+                    const option = document.createElement('option');
+                    option.value = colName;
+                    option.textContent = colName;
+                    vehicleSelect.appendChild(option);
+                }
+            });
+        }
+
+        function getDayName(dayOfWeek) {
+            const days = ['일', '월', '화', '수', '목', '금', '토'];
+            return days[dayOfWeek];
+        }
+        
+        function isPublicHoliday(date) {
+            const year = date.getFullYear();
+            if (year !== 2025) return false; 
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const mmdd = `${month}-${day}`;
+            return publicHolidays2025[mmdd] || false; 
+        }
+
+        function renderCellContent(names) {
+            if (!names || names.length === 0) return '';
+            return names.map(item => {
+                const text = item.text.trim();
+                const display = text === '' ? '.' : text;
+                const hiddenClass = text === '' ? ' hidden-x' : '';
+                const boldClass = item.bold ? ' bold-name' : ''; 
+                return `<span class="name-entry${hiddenClass}${boldClass}">${display}</span>`;
+            }).join('');
+        }
+
+        function editCell(cell, colId, dateString, dayOfWeek) {
+            if (cell.classList.contains('edit-mode')) return;
+            document.querySelectorAll('#section1 td.edit-mode').forEach(editCell => { 
+                const prevColId = editCell.dataset.colId;
+                const prevDateString = editCell.dataset.dateString;
+                const originalNames = (scheduleData[prevDateString] && scheduleData[prevDateString][prevColId]) || [{ text: '', bold: false }, { text: '', bold: false }];
+                editCell.classList.remove('edit-mode');
+                editCell.innerHTML = renderCellContent(originalNames);
+            });
+            const currentNames = (scheduleData[dateString] && scheduleData[dateString][colId]) || [{ text: '', bold: false }, { text: '', bold: false }];
+            const morningValue = currentNames[0] ? currentNames[0].text : '';
+            const afternoonValue = currentNames[1] ? currentNames[1].text : '';
+            const isBiweeklySunday = (workTypeConfig[colId] === 'biweekly' && dayOfWeek === 0);
+
+            cell.classList.add('edit-mode');
+            cell.dataset.colId = colId;
+            cell.dataset.dateString = dateString;
+            cell.dataset.dayOfWeek = dayOfWeek;
+            cell.innerHTML = `
+                <input type="text" class="morning-input" value="${morningValue}" placeholder="오전" data-bold="${currentNames[0].bold}">
+                <input type="text" class="afternoon-input" value="${afternoonValue}" placeholder="오후" data-bold="${currentNames[1].bold}">
+                <div class="cell-buttons">
+                    <button class="btn-fixed" onclick="saveFixedCell(this.parentNode.parentNode)" ${isBiweeklySunday ? 'disabled title="격주 근무 차량은 일요일 고정 저장이 불가능합니다."' : ''}>고정</button>
+                    <button class="btn-temp" onclick="saveTempCell(this.parentNode.parentNode)">임시</button>
+                    <button class="btn-highlight-am" onclick="highlightCell(this.parentNode.parentNode, 'am')">오전 강조</button>
+                    <button class="btn-highlight-pm" onclick="highlightCell(this.parentNode.parentNode, 'pm')">오후 강조</button>
+                    <button class="btn-delete" onclick="deleteCell(this.parentNode.parentNode)">삭제</button>
+                </div>
+            `;
+            cell.querySelector('.morning-input').focus();
+        }
+        
+        function clearEditMode(event) {
+            if (event.target.matches('#section1 td:nth-child(1)') || event.target.matches('#section1 td:nth-child(2)')) {
+                const editCell = document.querySelector('#section1 td.edit-mode');
+                if (editCell) {
+                    const prevColId = editCell.dataset.colId;
+                    const prevDateString = editCell.dataset.dateString;
+                    const originalNames = (scheduleData[prevDateString] && scheduleData[prevDateString][prevColId]) ||
+                    [{ text: '', bold: false }, { text: '', bold: false }];
+                    editCell.classList.remove('edit-mode');
+                    editCell.innerHTML = renderCellContent(originalNames);
+                }
+            }
+        }
+
+        function getNamesAndBoldStateFromCell(cellElement) {
+            const morningInput = cellElement.querySelector('.morning-input');
+            const afternoonInput = cellElement.querySelector('.afternoon-input');
+            const morningText = morningInput.value.trim();
+            const afternoonText = afternoonInput.value.trim();
+            const morningBold = morningInput.dataset.bold === 'true';
+            const afternoonBold = afternoonInput.dataset.bold === 'true';
+            return [ { text: morningText, bold: morningBold }, { text: afternoonText, bold: afternoonBold } ];
+        }
+
+        function highlightCell(cellElement, timeOfDay) {
+            let inputElement;
+            if (timeOfDay === 'am') inputElement = cellElement.querySelector('.morning-input');
+            else if (timeOfDay === 'pm') inputElement = cellElement.querySelector('.afternoon-input');
+            if (inputElement) {
+                const isCurrentlyBold = inputElement.dataset.bold === 'true';
+                const newState = !isCurrentlyBold;
+                inputElement.dataset.bold = newState; 
+                inputElement.style.fontWeight = newState ? 'bold' : 'normal';
+            }
+        }
+
+        function saveFixedCell(cellElement) {
+        const { colId, dayOfWeek, dateString } = cellElement.dataset;
+        const namesToSave = getNamesAndBoldStateFromCell(cellElement);
+        const workType = workTypeConfig[colId] || 'normal';
+        if (workType === 'biweekly' && dayOfWeek === '0') {
+            alert('격주 근무 차량은 일요일 고정 저장이 불가능합니다.');
+            return;
+        }
+
+        const currentRecurringKey = `${dayOfWeek}-${colId}`;
+        if (!fixedScheduleData[currentRecurringKey]) {
+            fixedScheduleData[currentRecurringKey] = [];
+        }
+        fixedScheduleData[currentRecurringKey] = fixedScheduleData[currentRecurringKey].filter(
+            entry => entry.dateString !== dateString
+        );
+        fixedScheduleData[currentRecurringKey].push({ dateString: dateString, names: namesToSave });
+
+        // [수정]
+        // 기존에 있던 'biweekly' (격주 근무) 로테이션 자동 저장 로직을
+        // 이 곳에서 완전히 제거합니다.
+        // 이 로직은 generateSchedule() 함수에서 렌더링 시점에 직접 계산하도록 변경되었습니다.
+        /*
+        if (workType === 'biweekly' && dayOfWeek !== '0') {
+            // ... 이 안에 있던 모든 코드를 삭제 (또는 주석 처리) ...
+        }
+        */
+
+        for (const key in fixedScheduleData) {
+            fixedScheduleData[key].sort((a, b) => new Date(b.dateString) - new Date(a.dateString));
+        }
+        saveMasterData();
+        generateSchedule();
+    }
+
+        function saveTempCell(cellElement) {
+            const { colId, dateString } = cellElement.dataset;
+            const namesToSave = getNamesAndBoldStateFromCell(cellElement);
+            if (!tempScheduleData[dateString]) tempScheduleData[dateString] = {};
+            tempScheduleData[dateString][colId] = namesToSave;
+            saveMasterData();
+            generateSchedule();
+        }
+
+        function deleteCell(cellElement) {
+            const { colId, dayOfWeek, dateString } = cellElement.dataset;
+            if (tempScheduleData[dateString]?.[colId]) {
+                delete tempScheduleData[dateString][colId];
+                if (Object.keys(tempScheduleData[dateString]).length === 0) {
+                    delete tempScheduleData[dateString];
+                }
+            }
+
+            const recurringKey = `${dayOfWeek}-${colId}`;
+            if (fixedScheduleData[recurringKey]) {
+                const blankNames = [{ text: '', bold: false }, { text: '', bold: false }];
+                fixedScheduleData[recurringKey] = fixedScheduleData[recurringKey].filter(entry => entry.dateString !== dateString);
+                fixedScheduleData[recurringKey].push({ dateString: dateString, names: blankNames });
+                fixedScheduleData[recurringKey].sort((a, b) => new Date(b.dateString) - new Date(a.dateString));
+            }
+            saveMasterData();
+            generateSchedule();
+        }
+
+        function resetAllFixedSchedules() {
+            if (!currentRoute) {
+                alert('초기화할 노선이 선택되지 않았습니다.');
+                return;
+            }
+            const password = prompt(`[${currentRoute}] 노선의 모든 고정/임시 근무표 및 근무형태 설정을 삭제하시려면 비밀번호를 입력하세요.`);
+            if (password === "201023") {
+                if (confirm(`[${currentRoute}] 노선의 모든 근무표 데이터를 삭제합니다. 계속하시겠습니까?`)) {
+                    const routeData = allRoutesData.routes[currentRoute];
+                    if (routeData) {
+                        routeData.fixedSchedule = {};
+                        routeData.tempSchedule = {};
+                        routeData.workTypeConfig = {};
+                        fixedScheduleData = routeData.fixedSchedule;
+                        tempScheduleData = routeData.tempSchedule;
+                        workTypeConfig = routeData.workTypeConfig;
+                        saveMasterData();
+                        generateSchedule();
+                        alert(`[${currentRoute}] 노선의 근무표가 초기화되었습니다.`);
+                    }
+                }
+            } else {
+                alert("비밀번호 확인 후 신청하세요.");
+            }
+        }
+
+        function backupScheduleData() {
+            const backupData = allRoutesData;
+            const jsonString = JSON.stringify(backupData);
+            const now = new Date();
+            const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
+            const routeIdentifier = (currentRoute ? currentRoute.replace(/\s/g, '') : 'all');
+            const filename = `bus_schedule_${routeIdentifier}_backup_${timestamp}.json`;
+            const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            alert(`전체 근무표 백업 데이터 파일 (${filename})이 다운로드 폴더에 JSON 파일로 저장됩니다.`);
+        }
+
+        function restoreScheduleData(file) {
+            const selectElement = document.getElementById('scheduleActionsSelect');
+            if (!file) {
+                selectElement.value = '';
+                return;
+            }
+            if (!confirm(`[${file.name}] 파일을 업로드하여 저장된 *모든* 노선의 근무표를 복구하시겠습니까? (현재 모든 데이터는 덮어쓰여집니다.)`)) {
+                document.getElementById('restoreFile').value = '';
+                selectElement.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const loadedData = JSON.parse(event.target.result);
+                    if (!loadedData.routes || loadedData.currentRoute === undefined) {
+                         alert('파일 형식이 올바르지 않거나 데이터가 부족합니다. (routes, currentRoute 속성 필요)');
+                         throw new Error('Invalid backup file structure');
+                    }
+                    allRoutesData = loadedData;
+                    currentRoute = allRoutesData.currentRoute; 
+                    saveMasterData();
+                    populateRouteSelect();
+                    loadRouteData(currentRoute);
+                    alert(`[${file.name}] 파일로부터 전체 데이터 복구를 완료했습니다. 화면을 확인해주세요.`);
+                } catch (e) {
+                    alert('파일을 읽는 도중 오류가 발생했습니다. 파일이 손상되었거나 JSON 형식이 아닙니다.');
+                    console.error('Restore Error:', e);
+                } finally {
+                    document.getElementById('restoreFile').value = '';
+                    selectElement.value = '';
+                }
+            };
+            reader.onerror = function() {
+                alert('파일을 읽을 수 없습니다.');
+                document.getElementById('restoreFile').value = '';
+                selectElement.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function generateSchedule() {
+        if (!currentRoute || !allRoutesData.routes[currentRoute]) {
+            document.getElementById('tableCaption').textContent = '표시할 노선을 선택하거나 추가해주세요.';
+            document.getElementById('scheduleHeader').innerHTML = '';
+            document.getElementById('scheduleBody').innerHTML = '';
+            return;
+        }
+
+        const year = parseInt(document.getElementById('yearInput').value);
+        const month = parseInt(document.getElementById('monthInput').value);
+        const selectedOption = document.querySelector('#section1 input[name="displayOption"]:checked').value;
+        const applyHolidays = document.getElementById('holidaySelect').value === 'apply';
+        const routeData = allRoutesData.routes[currentRoute];
+        const companyName = routeData.companyName || '회사명 없음';
+        const VEHICLE_COLS = routeData.vehicleColumns || [];
+        const scheduleHeader = document.getElementById('scheduleHeader');
+        const scheduleBody = document.getElementById('scheduleBody');
+        const tableCaption = document.getElementById('tableCaption');
+        const headerHTML = `<tr><th style="width: 4%;">월일</th><th style="width: 4%;">요일</th>${VEHICLE_COLS.map(c => c === '미입력' ? `<th></th>` : `<th>${c}</th>`).join('')}</tr>`;
+        scheduleHeader.innerHTML = headerHTML;
+        scheduleBody.innerHTML = '';
+
+        const startDate = new Date(year, month - 1, selectedOption === '1' ? 1 : 16);
+        const endDate = (selectedOption === '1') ? new Date(year, month - 1, 15) : new Date(year, month, 0);
+        tableCaption.textContent = `${companyName} [${currentRoute}] ${year}년 ${month}월 ${startDate.getDate()}일 ~ ${endDate.getDate()}일까지 근무현황표`;
+
+        scheduleData = {};
+        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+            const dateString = d.toISOString().slice(0, 10);
+            const dayOfWeek = d.getDay();
+            let cellsContent = {};
+
+            VEHICLE_COLS.forEach(colId => {
+                if (colId === '미입력') {
+                    cellsContent[colId] = [];
+                    return;
+                }
+
+                let appliedNames = [{ text: '', bold: false }, { text: '', bold: false }];
+                if (tempScheduleData[dateString] && tempScheduleData[dateString][colId]) {
+                    appliedNames = tempScheduleData[dateString][colId];
+
+                } else {
+                    const recurringKey = `${dayOfWeek}-${colId}`;
+                    if (fixedScheduleData[recurringKey]) {
+
+                        // [수정] 가장 최근의 '고정' 항목 찾기 (기존 로직과 동일)
+                        let anchorEntry = null;
+                        for (const entry of fixedScheduleData[recurringKey]) {
+                            if (new Date(dateString) >= new Date(entry.dateString)) {
+                                anchorEntry = entry;
+                                break; 
+                            }
+                         }
+
+                        if (anchorEntry) {
+                            const workType = workTypeConfig[colId] || 'normal';
+
+                            // [수정] 격주 근무(biweekly)인 경우, 주차 계산 로직 (월/년도 경계와 상관없이 작동)
+                            if (workType === 'biweekly' && dayOfWeek !== 0) { // 일요일 제외
+                                const anchorDate = new Date(anchorEntry.dateString);
+                                const currentDate = new Date(dateString);
+
+                                // 날짜 비교 시 시/분/초를 0으로 통일 (일광 절약 시간대 문제 방지)
+                                anchorDate.setHours(0, 0, 0, 0);
+                                currentDate.setHours(0, 0, 0, 0);
+
+                                const msInDay = 24 * 60 * 60 * 1000;
+                                const diffInMs = currentDate.getTime() - anchorDate.getTime();
+
+                                // 두 날짜 간의 일(day) 수 차이 계산
+                                const diffInDays = Math.round(diffInMs / msInDay);
+
+                                // 7로 나눈 몫 (총 몇 주가 지났는지)
+                                // 0~6일 차이 -> 0 (같은 주)
+                                // 7~13일 차이 -> 1 (1주 차이)
+                                // 14~20일 차이 -> 2 (2주 차이)
+                                const weekDifference = Math.floor(diffInDays / 7);
+
+                                if (weekDifference % 2 === 1) { // 홀수 주가 지났으면
+                                    // 근무 순서 교대: [오후, 오전]
+                                    appliedNames = [anchorEntry.names[1], anchorEntry.names[0]];
+                                } else { // 0 또는 짝수 주가 지났으면
+                                    // 원래 근무 순서: [오전, 오후]
+                                    appliedNames = anchorEntry.names;
+                                }
+
+                            } else {
+                                // 격주 근무가 아니거나 일요일인 경우
+                                appliedNames = anchorEntry.names;
+                            }
+                        }
+                    }
+                }
+                cellsContent[colId] = appliedNames;
+            });
+            scheduleData[dateString] = cellsContent;
+
+            const holidayName = applyHolidays ? isPublicHoliday(d) : false;
+            const isHoliday = !!holidayName;
+
+            let rowClass = '';
+            const dayName = getDayName(dayOfWeek); 
+            let mainColor = '#333'; 
+            let subText = '';
+            if (isHoliday) {
+                rowClass = 'holiday';
+                mainColor = '#cc0000'; 
+                subText = holidayName.substring(0, 2); 
+            } else if (dayOfWeek === 0) { // Sunday
+                rowClass = 'sunday';
+                mainColor = '#cc0000'; 
+                subText = '일요'; 
+            } else if (dayOfWeek === 6) { // Saturday
+                rowClass = 'saturday';
+                mainColor = '#0000cc'; 
+                subText = '토요';
+            }
+
+            let dayCellContent;
+            if (dayOfWeek === 0 || dayOfWeek === 6 || isHoliday) {
+                dayCellContent = `
+                    <div class="day-cell-content">
+                        <span class="day-name-main" style="color: ${mainColor};">${dayName}</span>
+                        <span class="sub-day-info" style="color: ${mainColor};">${subText}</span>
+                    </div>`;
+            } else { // 평일
+                dayCellContent = `
+                    <div class="day-cell-content">
+                        <span class="day-name-main" style="color: ${mainColor};">${dayName}</span>
+                        <span class="sub-day-info" style="color: ${mainColor};"></span>
+                    </div>`;
+            }
+
+            const dataCellsHTML = VEHICLE_COLS.map(colId =>
+                colId === '미입력' 
+                ? `<td></td>` 
+                : `<td onclick="editCell(this, '${colId}', '${dateString}', ${dayOfWeek})">${renderCellContent(cellsContent[colId])}</td>`
+            ).join('');
+
+            scheduleBody.insertAdjacentHTML('beforeend', `
+                <tr class="${rowClass}">
+                    <td>${d.getDate()}</td>
+                    <td>${dayCellContent}</td> 
+                    ${dataCellsHTML}
+                </tr>`);
+        }
+    }
+
+        function calculateWorkdays() {
+            if (!currentRoute || !allRoutesData.routes[currentRoute]) {
+                alert('근무일수를 계산할 노선이 없습니다.');
+                return;
+            }
+            const year = parseInt(document.getElementById('yearInput').value);
+            const month = parseInt(document.getElementById('monthInput').value);
+            const VEHICLE_COLS = allRoutesData.routes[currentRoute].vehicleColumns || [];
+            const workdayCounts = {};
+            const shiftCounts = {};
+            const allNames = new Set();
+            const startDate = new Date(year, month - 1, 1);
+            const endDate = new Date(year, month, 0);
+            for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                const dateString = d.toISOString().slice(0, 10);
+                const dayOfWeek = d.getDay();
+                let dailyNames = {};
+                VEHICLE_COLS.forEach(colId => {
+                    if (colId === '미입력') return; 
+
+                    let appliedNames = [{ text: '', bold: false }, { text: '', bold: false }];
+                    if (tempScheduleData[dateString] && tempScheduleData[dateString][colId]) {
+                       appliedNames = tempScheduleData[dateString][colId];
+                    } else {
+                        const recurringKey = `${dayOfWeek}-${colId}`;
+                        if (fixedScheduleData[recurringKey]) {
+                            for (const entry of fixedScheduleData[recurringKey]) {
+                                if (new Date(dateString) >= new Date(entry.dateString)) {
+                                    appliedNames = entry.names;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    dailyNames[colId] = appliedNames;
+                });
+                const dayWorkdays = new Set();
+                for (const colId in dailyNames) {
+                    if (colId !== '비고' && colId !== '미입력') { 
+                        dailyNames[colId].forEach((item, index) => {
+                            const name = item.text.trim();
+  
+                            if (name !== '') {
+                                allNames.add(name);
+                                if (!shiftCounts[name]) shiftCounts[name] = { 오전: 0, 오후: 0 };
+                                if (index === 0) shiftCounts[name].오전++;
+                                else shiftCounts[name].오후++;
+                                dayWorkdays.add(name);
+                            }
+                        });
+                    }
+                }
+                dayWorkdays.forEach(name => {
+                    if (!workdayCounts[name]) workdayCounts[name] = 0;
+                    workdayCounts[name]++;
+                });
+            }
+            const combinedData = Object.keys(workdayCounts).map(name => ({
+                name: name, workdays: workdayCounts[name],
+                morningShifts: (shiftCounts[name] && shiftCounts[name].오전) || 0,
+                afternoonShifts: (shiftCounts[name] && shiftCounts[name].오후) || 0
+            }));
+            combinedData.sort((a, b) => b.workdays - a.workdays);
+            const title = `[${currentRoute}] ${year}년 ${month}월 근무일수`;
+            const tableHTML = `
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead><tr>
+                        <th style="width: 25%; padding: 8px; border: 1px solid #ddd;">이름</th>
+                        <th style="width: 25%; padding: 8px; border: 1px solid #ddd;">오전</th>
+                        <th style="width: 25%; padding: 8px; border: 1px solid #ddd;">오후</th>
+                        <th style="width: 25%; padding: 8px; border: 1px solid #ddd;">총 근무일수</th>
+                    </tr></thead>
+                           <tbody>${combinedData.map(data => `
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${data.name}</td>
+                             <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${data.morningShifts}일</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${data.afternoonShifts}일</td>
+                             <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${data.workdays}일</td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>`;
+            const newWindow = window.open('', '_blank', 'width=600,height=400');
+            newWindow.document.write(`<html><head><title>${title}</title><style>
+                         body { font-family: Arial, sans-serif; margin: 20px; } h3 { text-align: center; }
+                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                th, td { border: 1px solid #ddd; padding: 10px; text-align: center; } th { background-color: #f2f2f2; }
+                 .print-button { display: block; margin: 20px auto; padding: 10px 20px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 5px; }
+                @media print { .print-button { display: none; } html, body { height: 100%; width: 100%; margin: 0; } }
+                </style></head><body><h3>${title}</h3>${tableHTML}<button class="print-button" onclick="window.print()">인쇄</button></body></html>`);
+            newWindow.document.close();
+        }
+
+        function printPage() {
+            const editCell = document.querySelector('#section1 td.edit-mode');
+            if (editCell) {
+                const { colId, dateString } = editCell.dataset;
+                const originalNames = scheduleData[dateString]?.[colId] || [{ text: '', bold: false }, { text: '', bold: false }];
+                editCell.classList.remove('edit-mode');
+                editCell.innerHTML = renderCellContent(originalNames);
+            }
+            const marginLeft = document.getElementById('marginLeftSelect').value;
+            const marginRight = document.getElementById('marginRightSelect').value;
+            document.documentElement.style.setProperty('--print-margin-left', `${marginLeft}mm`);
+            document.documentElement.style.setProperty('--print-margin-right', `${marginRight}mm`);
+            const originalTitle = document.title;
+            const captionText = document.getElementById('tableCaption').textContent;
+            let newTitle = "근무현황표";
+            const matches = captionText.match(/\[(.*?)\] (\d{4})년 (\d{1,2})월 (\d{1,2})일 ~ (\d{1,2})일/);
+            if (matches) {
+                const routeName = matches[1];
+                const year = matches[2];
+                const month = matches[3].padStart(2, '0');
+                const startDay = matches[4].padStart(2, '0');
+                const endDay = matches[5].padStart(2, '0');
+                newTitle = `${routeName} ${year}-${month} (${startDay}일-${endDay}일)`;
+            } else if (currentRoute) {
+                newTitle = `${currentRoute} 근무현황표`;
+            }
+            
+            document.body.classList.add('printing-section1'); // S1 인쇄용 클래스 추가
+
+            const handleAfterPrint = () => {
+                document.title = originalTitle;
+                document.documentElement.style.removeProperty('--print-margin-left');
+                document.documentElement.style.removeProperty('--print-margin-right');
+                document.body.classList.remove('printing-section1'); 
+                window.removeEventListener('afterprint', handleAfterPrint);
+            };
+            window.addEventListener('afterprint', handleAfterPrint);
+            document.title = newTitle;
+            window.print();
+        }
+        
+        function applyFontSize(size) {
+            let sizeValue = parseFloat(size);
+            if (sizeValue < 8) size = '8pt';
+            if (sizeValue > 20) size = '20pt';
+            document.documentElement.style.setProperty('--worker-font-size', size);
+        }
+
+        function handleScheduleActions() {
+            const selectElement = document.getElementById('scheduleActionsSelect');
+            const action = selectElement.value;
+            if (action === 'reset') resetAllFixedSchedules();
+            else if (action === 'backup') backupScheduleData();
+            else if (action === 'restore') document.getElementById('restoreFile').click();
+            selectElement.value = '';
+        }
+
+        function handleWorkTypeChange() {
+            const vehicleSelect = document.getElementById('vehicleSelect');
+            const workTypeSelect = document.getElementById('workTypeSelect');
+            const selectedValue = vehicleSelect.value; 
+            const workType = workTypeSelect.value;
+            
+            if (!selectedValue || !workType) return;
+            if (workType === 'normal' || workType === 'biweekly' || workType === 'five_day') { 
+                let workTypeName = '';
+                if (workType === 'normal') workTypeName = '3/3 근무';
+                else if (workType === 'biweekly') workTypeName = '격주 근무';
+                else if (workType === 'five_day') workTypeName = '5일 근무';
+                
+                if (selectedValue === 'ALL_VEHICLES') {
+                    const vehicleCount = currentVehicleColumns.filter(c => c !== '미입력').length;
+                    if (vehicleCount === 0) {
+                        alert('설정할 차량이 없습니다.');
+                    } else if (confirm(`[${currentRoute}] 노선의 '미입력'을 제외한 *전체 차량* (${vehicleCount}대)의 근무형태를 [${workTypeName}]로 설정하고 저장하시겠습니까?`)) {
+                        currentVehicleColumns.forEach(colId => {
+                            if (colId !== '미입력') { 
+                               workTypeConfig[colId] = workType;
+                            }
+                        });
+                        saveMasterData();
+                        alert(`[${currentRoute}] 노선의 전체 차량 근무형태가 [${workTypeName}]로 설정되었습니다. '고정' 저장 시 적용됩니다.`);
+                    }
+                } else {
+                    const colId = selectedValue;
+                    if (confirm(`차량 [${colId}]의 근무형태를 [${workTypeName}]로 설정하고 저장하시겠습니까?`)) {
+                        workTypeConfig[colId] = workType;
+                        saveMasterData();
+                        alert(`차량 [${colId}]의 근무형태가 [${workTypeName}]로 설정되었습니다. '고정' 저장 시 적용됩니다.`);
+                    }
+                }
+            }
+            
+            vehicleSelect.value = '';
+            workTypeSelect.value = '';
+        }
+        
+        function handleRouteSelectChange(routeName) {
+            if (routeName) {
+                loadRouteData(routeName);
+            }
+        }
+
+        // --- S1: 페이지 로드 시 실행 (S2 로드 로직과 분리) ---
+        function initializeSection1() {
+            const today = new Date();
+            // S1 필드 초기화
+            const yearInput = document.getElementById('yearInput');
+            const monthInput = document.getElementById('monthInput');
+     
+                   if (yearInput) yearInput.value = today.getFullYear();
+            if (monthInput) monthInput.value = today.getMonth() + 1;
+            
+            const currentDay = today.getDate();
+            if (currentDay <= 15) {
+                const option1 = document.getElementById('option1');
+                       if (option1) option1.checked = true;
+            } else {
+                const option2 = document.getElementById('option2');
+                if (option2) option2.checked = true;
+            }
+            
+            loadMasterData();
+            populateRouteSelect();
+            loadRouteData(currentRoute); 
+            // S1의 날짜/요일 셀 클릭 시 편집 모드 해제 이벤트 리스너 추가
+            document.addEventListener('click', clearEditMode);
+        }
+
+
+        /* ================================================================= */
+        /* [Section 2] 승무 일지 JavaScript (새로운 배차표-25.html 기반) */
+        /* ================================================================= */
+        
+        // --- S2: Global Variables ---
+        // S2의 로컬 노선/차량 맵 (S1의 데이터와 별개로 S2의 UI를 그림)
+        const S2_ROUTE_MAP = {
+            '종로07번': '07',
+            '종로08번': '08',
+            '성동 3-1번': 'sd31',
+            '성동 3-2번': 'sd32'
+        };
+        const S2_USED_VEHICLES = {};
+
+        // --- S2: 기존 JavaScript 함수 (이름 충돌 방지를 위해 's2_' 접두사 추가) ---
+        function s2_getTodayDateString() {
+            return new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'long' }).replace(/\. /g, '.').replace(/\.$/, '').replace(/(\d{4})년 (\d{2})월 (\d{2})일/,'$1년 $2월 $3일');
+        }
+
+        function s2_changeFontSize(size) {
+            const s2Body = document.querySelector('#section2');
+            if (s2Body) {
+                s2Body.style.fontSize = size + 'pt';
+            }
+        }
+
+        function s2_changeDispatchOrder(order) {
+            document.querySelectorAll('#section2 .dispatch-button').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.querySelector(`#section2 .dispatch-button[onclick="s2_changeDispatchOrder('${order}')"]`);
+            if (activeBtn) activeBtn.classList.add('active');
+            console.log("S2: 출차 순서 변경:", order);
+        }
+
+        function printSection2() {
+            document.body.classList.remove('printing-section1');
+            document.body.classList.add('printing-section2'); // S2 인쇄용 클래스 추가
+
+            const handleAfterPrint = () => {
+                document.body.classList.remove('printing-section2');
+                window.removeEventListener('afterprint', handleAfterPrint);
+            };
+            window.addEventListener('afterprint', handleAfterPrint);
+            
+            window.print();
+        }
+
+        // --- S2: 차번 변경/삭제 기능 (S1 데이터 연동 포함) ---
+        function s2_getUsedCarNumbers(routeId) {
+            const used = [];
+            document.querySelectorAll(`#route-${routeId} .car-number-cell`).forEach(cell => {
+                const carNum = cell.dataset.carNumber;
+                if (carNum) {
+                    used.push(carNum);
+                }
+            });
+            S2_USED_VEHICLES[routeId] = used;
+            return used;
+        }
+        
+        // S2 ID 정규화
+        function s2_sanitizeForId(text) {
+            if (!text) return 'unknown';
+            return text.toLowerCase().replace(/[^a-z0-9]/g, ''); 
+        }
+
+        function s2_toggleCarNumberEditMode(td, event, routeName) {
+            event.preventDefault();
+            const carDisplay = td.querySelector('.car-display');
+            const carControls = td.querySelector('.car-controls');
+            const carSelect = carControls.querySelector('select');
+            
+            document.querySelectorAll('#section2 .car-number-cell').forEach(otherTd => {
+                if (otherTd !== td) {
+                    s2_exitCarNumberEditMode(otherTd);
+                }
+            });
+            
+            document.querySelectorAll('#section2 td[onclick="s2_toggleEditMode(this)"]').forEach(otherTd => {
+                s2_exitEditMode(otherTd);
+            });
+            
+            if (carControls.classList.contains('hidden')) {
+                carDisplay.classList.add('hidden');
+                carControls.classList.remove('hidden');
+                
+                // S1의 데이터를 기반으로 드롭다운 채우기
+                s2_populateCarSelect(carSelect, routeName, td.dataset.carNumber);
+            }
+        }
+
+        function s2_exitCarNumberEditMode(td, event) {
+            if (event) event.stopPropagation();
+            const carDisplay = td.querySelector('.car-display');
+            const carControls = td.querySelector('.car-controls');
+            
+            if(carDisplay) carDisplay.classList.remove('hidden');
+            if(carControls) carControls.classList.add('hidden');
+        }
+        
+        function s2_populateCarSelect(selectElement, routeName, currentCarNumber) {
+            selectElement.innerHTML = '';
+            
+            // S1 데이터 로드
+            const masterData = window.sharedData.load(window.MASTER_STORAGE_KEY);
+            const allVehiclesForRoute = masterData?.routes?.[routeName]?.vehicleColumns || [];
+            const routeId = S2_ROUTE_MAP[routeName] || s2_sanitizeForId(routeName);
+            
+            const usedCars = s2_getUsedCarNumbers(routeId);
+            const availableCars = allVehiclesForRoute.filter(car => 
+                (car && car !== '미입력') && 
+                (!usedCars.includes(car) || car === currentCarNumber)
+            ).sort();
+            
+            availableCars.forEach(car => {
+                const option = document.createElement('option');
+                option.value = car;
+                option.textContent = car;
+                if (car === currentCarNumber) {
+                    option.selected = true;
+                }
+                selectElement.appendChild(option);
+            });
+        }
+
+        function s2_changeCarNumber(selectElement, event, routeName) {
+            event.stopPropagation();
+            const newCarNumber = selectElement.value;
+            const td = selectElement.parentNode.parentNode.parentNode; 
+            const currentCarNumber = td.dataset.carNumber;
+            const routeId = S2_ROUTE_MAP[routeName] || s2_sanitizeForId(routeName);
+
+            if (newCarNumber === currentCarNumber) {
+                s2_exitCarNumberEditMode(td);
+                return;
+            }
+
+            if (confirm(`[${routeName}] 노선의 ${currentCarNumber}을(를) ${newCarNumber}로 변경하시겠습니까?`)) {
+                td.dataset.carNumber = newCarNumber;
+                td.querySelector('.car-display').textContent = newCarNumber;
+
+                // S2 내부의 name 속성 업데이트 (기존 로직 유지)
+                td.parentNode.querySelectorAll('input, textarea').forEach(input => {
+                    const name = input.name;
+                    if (name) {
+                        input.name = name.replace(currentCarNumber, newCarNumber);
+                    }
+                });
+                
+                s2_getUsedCarNumbers(routeId);
+                alert(`차번이 ${newCarNumber}로 성공적으로 변경되었습니다.`);
+            }
+            
+            s2_exitCarNumberEditMode(td);
+        }
+
+        function s2_deleteCarRow(td, event) {
+            event.stopPropagation();
+            const row = td.closest('tr');
+            const carNumber = td.dataset.carNumber;
+            const routeSection = row.closest('.route-section');
+            const routeName = routeSection.dataset.routeName;
+            const routeId = S2_ROUTE_MAP[routeName] || s2_sanitizeForId(routeName);
+
+            if (confirm(`[${routeName}] 노선의 차번 ${carNumber} 행을 완전히 삭제하시겠습니까?`)) {
+                // S2의 테이블에서 행 제거 (S1 데이터는 변경하지 않음, S2의 UI만 변경)
+                row.remove();
+                s2_getUsedCarNumbers(routeId);
+                alert(`차번 ${carNumber} 행이 S2(승무일지) 화면에서 삭제되었습니다. (S1 데이터는 유지됨)`);
+            }
+        }
+
+        // --- S2: 근무자 수정 모드 관련 함수 (S1 데이터 *양방향* 연동) ---
+        
+        function s2_toggleEditMode(td) {
+            const driverNameSpan = td.querySelector('.driver-name');
+            const driverInput = td.querySelector('.driver-input');
+            const editControls = td.querySelector('.edit-controls');
+
+            if (driverInput && !driverInput.classList.contains('hidden')) {
+                return;
+            }
+            
+            document.querySelectorAll('#section2 td[onclick="s2_toggleEditMode(this)"]').forEach(otherTd => {
+                if (otherTd !== td) {
+                    s2_exitEditMode(otherTd);
+                }
+            });
+            
+            document.querySelectorAll('#section2 .car-number-cell').forEach(otherTd => {
+                s2_exitCarNumberEditMode(otherTd);
+            });
+
+            if (driverNameSpan && driverInput) {
+                driverInput.value = driverNameSpan.innerHTML.trim().replace(/<br>/g, '\n'); 
+                
+                driverNameSpan.classList.add('hidden');
+                driverInput.classList.remove('hidden');
+                if (editControls) editControls.classList.remove('hidden');
+                
+                driverInput.focus();
+            }
+        }
+        
+        function s2_saveAndExit(td, event) {
+            event.stopPropagation(); 
+            const driverNameSpan = td.querySelector('.driver-name');
+            const driverInput = td.querySelector('.driver-input');
+            const newName = driverInput.value.trim();
+
+            if (driverNameSpan) {
+                driverNameSpan.innerHTML = newName.replace(/\n/g, '<br>'); 
+            }
+
+            // ★ 중요: S2에서 변경된 근무자 이름을 S1(localStorage) '오늘 날짜'의 'tempSchedule'에 저장
+            try {
+                const today = new Date().toISOString().slice(0, 10);
+                const routeSection = td.closest('.route-section');
+                const routeName = routeSection.dataset.routeName;
+                const carNumberCell = td.closest('tr').querySelector('.car-number-cell[data-car-number]');
+                
+                if (!carNumberCell) {
+                    console.error("S2->S1 연동 실패: 차번 셀을 찾을 수 없습니다.");
+                    s2_exitEditMode(td);
+                    return;
+                }
+                const carNumber = carNumberCell.dataset.carNumber;
+                
+                // S1 데이터에 접근
+                const routeData = allRoutesData.routes[routeName];
+                if (!routeData) {
+                    console.error(`S2->S1 연동 실패: S1 데이터에 ${routeName} 노선이 없습니다.`);
+                    s2_exitEditMode(td);
+                    return;
+                }
+                
+                const scheduleToUpdate = routeData.tempSchedule;
+                if (!scheduleToUpdate[today]) {
+                    scheduleToUpdate[today] = {};
+                }
+                if (!scheduleToUpdate[today][carNumber]) {
+                     scheduleToUpdate[today][carNumber] = [{ text: '', bold: false }, { text: '', bold: false }];
+                }
+
+                // name 속성으로 '오전', '오후', '휴무자' 구분 (S2의 고유한 DOM 구조 활용)
+                const nameAttr = driverInput.name || td.querySelector('.driver-name').dataset.nameFor; // dataset.nameFor는 연동 시 추가됨
+
+                if (nameAttr.includes('_am_driver')) { // 오전
+                    scheduleToUpdate[today][carNumber][0].text = newName; 
+                    scheduleToUpdate[today][carNumber][0].bold = true;
+                } else if (nameAttr.includes('_pm_driver')) { // 오후
+                    scheduleToUpdate[today][carNumber][1].text = newName; 
+                    scheduleToUpdate[today][carNumber][1].bold = true;
+                } else if (nameAttr.includes('_rest_driver')) { // 휴무자
+                    // (S1은 휴무자 칸이 없으므로, 비고 등에 넣거나 S1 데이터 구조 변경 필요)
+                    // 여기서는 S1의 오전/오후를 비우는 것으로 처리
+                    scheduleToUpdate[today][carNumber][0].text = '휴무';
+                    scheduleToUpdate[today][carNumber][1].text = '휴무';
+                    console.log(`[S2->S1] ${carNumber} 휴무자(${newName}) 등록. S1 데이터를 '휴무'로 임시 저장`);
+                }
+                
+                saveMasterData(); // ★ 변경사항 S1 데이터에 저장
+                console.log(`[S2->S1] ${today} ${carNumber} 임시 데이터 저장:`, newName);
+
+            } catch (e) {
+                console.error("S2->S1 임시 데이터 저장 오류:", e);
+            }
+
+            s2_exitEditMode(td);
+        }
+
+        function s2_deleteName(td, event) {
+            event.stopPropagation(); 
+            const driverNameSpan = td.querySelector('.driver-name');
+            const driverInput = td.querySelector('.driver-input');
+            
+            if (driverNameSpan) driverNameSpan.textContent = '';
+            if (driverInput) driverInput.value = '';
+
+            // ★ 중요: S2에서 삭제된 근무자 이름을 S1(localStorage) '오늘 날짜'의 'tempSchedule'에 반영
+             try {
+                const today = new Date().toISOString().slice(0, 10);
+                const routeSection = td.closest('.route-section');
+                const routeName = routeSection.dataset.routeName;
+                const carNumberCell = td.closest('tr').querySelector('.car-number-cell[data-car-number]');
+                
+                if (!carNumberCell) return;
+                const carNumber = carNumberCell.dataset.carNumber;
+                
+                const routeData = allRoutesData.routes[routeName];
+                if (!routeData) return;
+                
+                const scheduleToUpdate = routeData.tempSchedule;
+
+                if (scheduleToUpdate && scheduleToUpdate[today] && scheduleToUpdate[today][carNumber]) {
+                    const nameAttr = driverInput.name || driverNameSpan.dataset.nameFor;
+                    
+                    if (nameAttr.includes('_am_driver')) { // 오전
+                        scheduleToUpdate[today][carNumber][0].text = ''; 
+                        scheduleToUpdate[today][carNumber][0].bold = false;
+                    } else if (nameAttr.includes('_pm_driver')) { // 오후
+                        scheduleToUpdate[today][carNumber][1].text = ''; 
+                        scheduleToUpdate[today][carNumber][1].bold = false;
+                    } else if (nameAttr.includes('_rest_driver')) { // 휴무자
+                        // 휴무자 삭제 시 S1도 비움
+                        scheduleToUpdate[today][carNumber][0].text = '';
+                        scheduleToUpdate[today][carNumber][1].text = '';
+                    }
+                    
+                    saveMasterData(); // ★ 변경사항 S1 데이터에 저장
+                    console.log(`[S2->S1] ${today} ${carNumber} 임시 데이터 삭제`);
+                }
+            } catch (e) {
+                console.error("S2->S1 임시 데이터 삭제 오류:", e);
+            }
+
+            s2_exitEditMode(td);
+        }
+
+        function s2_exitEditMode(td) {
+            const driverNameSpan = td.querySelector('.driver-name');
+            const driverInput = td.querySelector('.driver-input');
+            const editControls = td.querySelector('.edit-controls');
+
+            if (driverNameSpan) driverNameSpan.classList.remove('hidden');
+            if (driverInput) driverInput.classList.add('hidden');
+            if (editControls) editControls.classList.add('hidden');
+        }
+        
+        // --- S2: 스케줄 및 파일 로드 함수 (S1 연동 로직 포함) ---
+// --- S2: 시간 포맷팅 헬퍼 함수 ---
+        function s2_formatTime(date) {
+            const h = String(date.getHours()).padStart(2, '0');
+            const m = String(date.getMinutes()).padStart(2, '0');
+            return `${h}:${m}`;
+        }
+        function s2_applyScheduleSettings(routeId) { 
+            const routeSection = document.getElementById(`route-${routeId}`);
+            if (!routeSection) return;
+
+            // 1. [수정] 이 노선에 표시된 모든 차번을 *화면 순서대로* 가져오기
+            const tableRows = routeSection.querySelectorAll('.journal-table tbody tr');
+            const leftColumnVehicles = [];
+            const rightColumnVehicles = [];
+
+            tableRows.forEach(row => {
+                const cells = row.querySelectorAll('.car-number-cell[data-car-number]');
+                if (cells.length > 0 && cells[0].dataset.carNumber) {
+                    leftColumnVehicles.push(cells[0].dataset.carNumber);
+                }
+                if (cells.length > 1 && cells[1].dataset.carNumber) {
+                    rightColumnVehicles.push(cells[1].dataset.carNumber);
+                }
+            });
+
+            // 2. [수정] 좌측 -> 우측 순서로 차량 목록 최종 완성
+            const orderedVehicleNumbers = [...leftColumnVehicles, ...rightColumnVehicles];
+
+            // 3. 오전 설정값 가져오기
+            const amStartVehicle = routeSection.querySelector(`select[name="vehicle_select_${routeId}_am"]`).value;
+            const amStartHour = routeSection.querySelector(`input[name="hour_${routeId}_am"]`).value;
+            const amStartMinute = routeSection.querySelector(`input[name="minute_${routeId}_am"]`).value;
+            const amInterval = routeSection.querySelector(`input[name="interval_${routeId}_am"]`).value;
+
+            // 4. 오전 스케줄 적용 (모든 값이 입력되었을 때만)
+            if (amStartVehicle && amStartHour !== '' && amStartMinute !== '' && amInterval !== '') {
+                // [수정] 정렬된 목록 대신 'orderedVehicleNumbers' 사용
+                const startIndex = orderedVehicleNumbers.indexOf(amStartVehicle);
+                if (startIndex === -1) {
+                    alert('오전 첫 차로 선택한 차량을 목록에서 찾을 수 없습니다.');
+                } else {
+                    const amStartTime = new Date();
+                    amStartTime.setHours(parseInt(amStartHour), parseInt(amStartMinute), 0, 0);
+                    const amIntervalMin = parseInt(amInterval);
+
+                    for (let i = 0; i < orderedVehicleNumbers.length; i++) {
+                        const carNumber = orderedVehicleNumbers[i];
+                        
+                        // [수정] 순서는 'orderedVehicleNumbers' 리스트의 index를 따름
+                        const vehicleOrderIndex = (i - startIndex + orderedVehicleNumbers.length) % orderedVehicleNumbers.length;
+                        
+                        const minutesToAdd = vehicleOrderIndex * amIntervalMin;
+                        const newTime = new Date(amStartTime.getTime() + minutesToAdd * 60000);
+                        const timeString = s2_formatTime(newTime);
+                        
+                        const inputField = routeSection.querySelector(`input[name="start_time_${routeId}_${carNumber}_am"]`);
+                        if (inputField) {
+                            inputField.value = timeString;
+                        }
+                    }
+                }
+            }
+
+            // 5. 오후 설정값 가져오기
+            const pmStartVehicle = routeSection.querySelector(`select[name="vehicle_select_${routeId}_pm"]`).value;
+            const pmStartHour = routeSection.querySelector(`input[name="hour_${routeId}_pm"]`).value;
+            const pmStartMinute = routeSection.querySelector(`input[name="minute_${routeId}_pm"]`).value;
+            const pmInterval = routeSection.querySelector(`input[name="interval_${routeId}_pm"]`).value;
+
+            // 6. 오후 스케줄 적용 (오전과 로직 동일)
+            if (pmStartVehicle && pmStartHour !== '' && pmStartMinute !== '' && pmInterval !== '') {
+                // [수정] 정렬된 목록 대신 'orderedVehicleNumbers' 사용
+                const startIndex = orderedVehicleNumbers.indexOf(pmStartVehicle);
+                if (startIndex === -1) {
+                    alert('오후 막 차로 선택한 차량을 목록에서 찾을 수 없습니다.');
+                } else {
+                    const pmStartTime = new Date();
+                    pmStartTime.setHours(parseInt(pmStartHour), parseInt(pmStartMinute), 0, 0);
+                    const pmIntervalMin = parseInt(pmInterval);
+
+                    for (let i = 0; i < orderedVehicleNumbers.length; i++) {
+                        const carNumber = orderedVehicleNumbers[i];
+                        const vehicleOrderIndex = (i - startIndex + orderedVehicleNumbers.length) % orderedVehicleNumbers.length;
+                        const minutesToAdd = vehicleOrderIndex * pmIntervalMin;
+                        const newTime = new Date(pmStartTime.getTime() + minutesToAdd * 60000);
+                        const timeString = s2_formatTime(newTime);
+                        
+                        const inputField = routeSection.querySelector(`input[name="start_time_${routeId}_${carNumber}_pm"]`);
+                        if (inputField) {
+                            inputField.value = timeString;
+                        }
+                    }
+                }
+            }
+            
+            console.log(`S2: Schedule settings for route ${routeId} applied.`); 
+        }
+        
+        function s2_resetScheduleSettings(routeId) { 
+            const routeSection = document.getElementById(`route-${routeId}`);
+            if (!routeSection) return;
+
+            const inputs = routeSection.querySelectorAll('input[type="text"], input[type="number"]');
+            const driverSpans = routeSection.querySelectorAll('.driver-name');
+            const driverTextareas = routeSection.querySelectorAll('.driver-input');
+            const editTds = routeSection.querySelectorAll('td[onclick="s2_toggleEditMode(this)"]');
+            const carNumberCells = routeSection.querySelectorAll('.car-number-cell');
+
+            inputs.forEach(input => { input.value = ''; });
+            carNumberCells.forEach(cell => {
+                cell.querySelector('.car-display').textContent = cell.dataset.carNumber || '';
+                s2_exitCarNumberEditMode(cell);
+            });
+            driverSpans.forEach(span => { span.textContent = ''; });
+            driverTextareas.forEach(textarea => { textarea.value = ''; });
+            editTds.forEach(td => { s2_exitEditMode(td); });
+            
+            s2_getUsedCarNumbers(routeId); 
+            console.log(`S2: Schedule settings and data for route ${routeId} reset.`); 
+        }
+
+        function s2_triggerFileLoad(routeId) {
+            // S2의 파일 로드 기능은 S1 데이터와 충돌하므로, S1의 백업/복구 기능을 사용하도록 안내
+            alert(`[연동 모드] S2의 개별 파일 로드 기능은 비활성화되었습니다.\nS1(근무 현황표)의 '근무전체데이타관리옵션 -> 전체 데이터 복구' 기능을 이용해주세요.`);
+            // document.getElementById(`fileInput-${routeId}`).click(); // 기존 로직 비활성화
+        }
+
+        // (S2의 기존 파일 처리 로직은 S1 데이터와 충돌하므로 주석 처리 또는 제거)
+        // function s2_handleFileSelect(fileInput) { ... }
+        // function s2_clearAllScheduleData() { ... }
+        // function s2_applySchedule(scheduleData) { ... }
+        // function s2_updateRowSide(row, routeName, scheduleData, startIndex) { ... }
+
+        
+        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+        // ★ [핵심 연동] S1 -> S2 데이터 자동 연동 로직
+        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+
+        /**
+         * S2: '오늘 날짜'의 근무 데이터를 S1(localStorage)에서 가져옴
+         */
+        function s2_getTodayScheduleData(routeData) {
+            const today = new Date();
+            const dateString = today.toISOString().slice(0, 10);
+            const dayOfWeek = today.getDay();
+            
+            const tempSchedule = routeData.tempSchedule || {};
+            const fixedSchedule = routeData.fixedSchedule || {};
+            
+            let todayData = {};
+
+            // 1. 임시 데이터(temp)가 고정 데이터(fixed)보다 우선
+            if (tempSchedule[dateString]) {
+                todayData = JSON.parse(JSON.stringify(tempSchedule[dateString]));
+            }
+            
+            // 2. 임시 데이터가 없는 차량에 한해 고정 데이터 적용
+            const vehicleColumns = routeData.vehicleColumns || [];
+            vehicleColumns.forEach(colId => {
+                if (colId === '미입력' || todayData[colId]) {
+                    return; // 임시 데이터가 이미 있거나 '미입력' 차량이면 건너뜀
+                }
+
+                const recurringKey = `${dayOfWeek}-${colId}`;
+                if (fixedSchedule[recurringKey]) {
+                     for (const entry of fixedSchedule[recurringKey]) {
+                        // S1의 고정 데이터 날짜가 오늘보다 과거이거나 같아야 적용
+                        if (new Date(dateString) >= new Date(entry.dateString)) {
+                            todayData[colId] = JSON.parse(JSON.stringify(entry.names));
+                            break;
+                        }
+                    }
+                }
+            });
+            
+            return todayData;
+        }
+
+        /**
+         * S2: 승무일지 테이블의 한 쪽 (차량 1대분, 8열) HTML을 생성
+         * (S1 데이터 자동 연동 포함)
+         */
+       /**
+         * S2: 승무일지 테이블의 한 쪽 (차량 1대분, 8열) HTML을 생성
+         * (S1 데이터 자동 연동 포함)
+         */
+        function s2_createRowSideHTML(routeName, carNumber, todayData) {
+            const routeId = S2_ROUTE_MAP[routeName] || s2_sanitizeForId(routeName); // [수정] 새 노선 ID 생성
+            
+            if (!carNumber || carNumber === '미입력') {
+                return '<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>';
+            }
+
+            // S1의 '오늘 날짜' 데이터 (temp 또는 fixed)
+            // S1 데이터 구조: [{text: '오전근무자'}, {text: '오후근무자'}]
+            const s1CarData = todayData[carNumber] || [{ text: '' }, { text: '' }];
+            const amDriver = (s1CarData[0].text || '').replace(/\n/g, '<br>');
+            const pmDriver = (s1CarData[1].text || '').replace(/\n/g, '<br>');
+            const isRest = (amDriver === '휴무' || pmDriver === '휴무');
+            
+            // S2 포맷에 맞게 재배치 (S1의 오전 -> S2 오전, S1의 오후 -> S2 오후)
+            const s2_amDriver_html = isRest ? '' : amDriver;
+            const s2_pmDriver_html = isRest ? '' : pmDriver;
+            const s2_restDriver_html = isRest ? (amDriver === '휴무' ? amDriver : pmDriver) : '';
+
+            // [수정] '근무시간'을 <select>로 변경
+            const workHoursSelect = `
+                <option value="">기본</option>
+                ${Array.from({length: 19}, (_, i) => `<option value="${i}">${i}</option>`).join('')}
+            `;
+
+            // S2 '새로운 배차표-25'의 원본 HTML 구조 및 name 속성 유지
+            return `
+                <td class="car-number-cell" data-car-number="${carNumber}" 
+                    onclick="s2_toggleCarNumberEditMode(this, event, '${routeName}')" 
+                    draggable="true" 
+                    ondragstart="s2_dragStart(event, '${routeName}')" 
+                    ondragover="s2_dragOver(event)" 
+                    ondrop="s2_drop(event, '${routeName}')"
+                    ondragend="s2_dragEnd(event)">
+                    <div class="car-display">${carNumber}</div>
+                    <div class="car-controls hidden"><select onchange="s2_changeCarNumber(this, event, '${routeName}')"></select><div><button onclick="s2_deleteCarRow(this.parentNode.parentNode.parentNode, event)">삭제</button><button onclick="s2_exitCarNumberEditMode(this.parentNode.parentNode.parentNode, event)">닫기</button></div></div>
+                </td>
+                <td><input type="text" name="start_time_${routeId}_${carNumber}_am"></td>
+                <td>
+                    <select name="work_hours_${routeId}_${carNumber}_am" class="s2-work-hours-select">
+                        ${workHoursSelect}
+                    </select>
+                </td>
+                <td onclick="s2_toggleEditMode(this)">
+                    <span class="driver-name" data-name-for="s2_${routeId}_${carNumber}_am_driver">${s2_amDriver_html}</span>
+                    <textarea class="driver-input hidden" name="s2_${routeId}_${carNumber}_am_driver"></textarea>
+                    <div class="edit-controls hidden">
+                        <button onclick="s2_deleteName(this.parentNode.parentNode, event)">삭제</button>
+                        <button onclick="s2_saveAndExit(this.parentNode.parentNode, event)">수정</button>
+                    </div>
+                </td>
+                <td><input type="text" name="start_time_${routeId}_${carNumber}_pm"></td>
+                <td>
+                    <select name="work_hours_${routeId}_${carNumber}_pm" class="s2-work-hours-select">
+                        ${workHoursSelect}
+                    </select>
+                </td> 
+                <td onclick="s2_toggleEditMode(this)">
+                    <span class="driver-name" data-name-for="s2_${routeId}_${carNumber}_pm_driver">${s2_pmDriver_html}</span>
+                    <textarea class="driver-input hidden" name="s2_${routeId}_${carNumber}_pm_driver"></textarea>
+                    <div class="edit-controls hidden">
+                        <button onclick="s2_deleteName(this.parentNode.parentNode, event)">삭제</button>
+                        <button onclick="s2_saveAndExit(this.parentNode.parentNode, event)">수정</button>
+                    </div>
+                </td> 
+                <td onclick="s2_toggleEditMode(this)">
+                    <span class="driver-name" data-name-for="s2_${routeId}_${carNumber}_rest_driver">${s2_restDriver_html}</span>
+                    <textarea class="driver-input hidden" name="s2_${routeId}_${carNumber}_rest_driver"></textarea>
+                    <div class="edit-controls hidden">
+                        <button onclick="s2_deleteName(this.parentNode.parentNode, event)">삭제</button>
+                        <button onclick="s2_saveAndExit(this.parentNode.parentNode, event)">수정</button>
+                    </div>
+                </td> 
+            `;
+        }
+// --- S2: 드래그 앤 드롭 기능 (차번 순서 변경) ---
+        let s2_draggedCell = null;
+        let s2_draggedRoute = null;
+
+        function s2_dragStart(event, routeName) {
+            // 드래그 시작 시, 현재 셀(td)을 저장
+            s2_draggedCell = event.target.closest('td');
+            s2_draggedRoute = routeName;
+            // event.dataTransfer.setData('text/plain', null); // Firefox 호환성
+            event.target.style.opacity = '0.5';
+        }
+
+        function s2_dragOver(event) {
+            event.preventDefault(); // 필수: onDrop 이벤트를 허용하기 위함
+            const targetCell = event.target.closest('td.car-number-cell');
+            if (targetCell && targetCell !== s2_draggedCell) {
+                // 드롭 대상 위에 있을 때 시각적 피드백 (옵션)
+                // targetCell.style.border = '2px dashed #007bff'; 
+            }
+        }
+
+        function s2_drop(event, routeName) {
+            event.preventDefault();
+            const dropTargetCell = event.target.closest('td.car-number-cell');
+            
+            // 같은 노선 내에서, 드래그한 셀과 드롭 대상 셀이 모두 유효할 때
+            if (s2_draggedCell && dropTargetCell && s2_draggedCell !== dropTargetCell && s2_draggedRoute === routeName) {
+                
+                const draggedRow = s2_draggedCell.parentNode;
+                const targetRow = dropTargetCell.parentNode;
+                
+                // 1. 드래그한 셀의 전체 행(8칸) 내용을 임시 저장
+                const draggedSideHTML = s2_draggedCell.parentNode.innerHTML;
+                // 2. 드롭 대상 셀의 전체 행(8칸) 내용을 임시 저장
+                const targetSideHTML = dropTargetCell.parentNode.innerHTML;
+
+                // 3. 드래그한 셀이 있던 위치(좌/우)와 드롭 대상 셀의 위치(좌/우) 찾기
+                const draggedIsLeft = s2_draggedCell.cellIndex === 0;
+                const targetIsLeft = dropTargetCell.cellIndex === 0;
+
+                // 4. 두 셀의 위치(HTML) 교환
+                if (draggedIsLeft && targetIsLeft) {
+                    // (좌 -> 좌) 행 전체 교환
+                    const temp = document.createElement('tr');
+                    draggedRow.parentNode.insertBefore(temp, draggedRow);
+                    targetRow.parentNode.insertBefore(draggedRow, targetRow);
+                    temp.parentNode.insertBefore(targetRow, temp);
+                    temp.remove();
+                } else if (!draggedIsLeft && !targetIsLeft) {
+                    // (우 -> 우) 행 전체 교환
+                     const temp = document.createElement('tr');
+                    draggedRow.parentNode.insertBefore(temp, draggedRow);
+                    targetRow.parentNode.insertBefore(draggedRow, targetRow);
+                    temp.parentNode.insertBefore(targetRow, temp);
+                    temp.remove();
+                } else {
+                    // (좌 <-> 우) 열 내용만 교환
+                    const draggedCols = Array.from(draggedRow.cells).slice(draggedIsLeft ? 0 : 8, draggedIsLeft ? 8 : 16);
+                    const targetCols = Array.from(targetRow.cells).slice(targetIsLeft ? 0 : 8, targetIsLeft ? 8 : 16);
+                    
+                    const tempHTMLs = draggedCols.map(c => c.innerHTML);
+                    
+                    draggedCols.forEach((col, i) => {
+                        col.innerHTML = targetCols[i].innerHTML;
+                    });
+                    targetCols.forEach((col, i) => {
+                        col.innerHTML = tempHTMLs[i];
+                    });
+                }
+                
+                // 교환 후 S2의 '사용된 차량 번호' 목록 갱신
+                const routeId = S2_ROUTE_MAP[routeName] || s2_sanitizeForId(routeName);
+                s2_getUsedCarNumbers(routeId);
+            }
+            
+            if (s2_draggedCell) {
+                s2_draggedCell.style.opacity = '1';
+            }
+            s2_draggedCell = null;
+            s2_draggedRoute = null;
+        }
+
+        function s2_dragEnd(event) {
+            // 드래그가 취소되거나 완료되었을 때 투명도 복원
+            if (s2_draggedCell) {
+                s2_draggedCell.style.opacity = '1';
+            }
+            s2_draggedCell = null;
+            s2_draggedRoute = null;
+        }
+
+
+        // --- S2: 승무일지 데이터 백업/복구 (S1과 별개로 S2의 현재 상태 저장) ---
+        const S2_LOG_STORAGE_KEY = 'busDispatchLogData';
+
+        function s2_backupLogData() {
+            const logData = {};
+            const today = new Date().toISOString().slice(0, 10);
+            logData.backupDate = today;
+            logData.routes = {};
+
+            document.querySelectorAll('.route-section').forEach(section => {
+                const routeName = section.dataset.routeName;
+                if (!routeName) return;
+                
+                logData.routes[routeName] = [];
+                section.querySelectorAll('.journal-table tbody tr').forEach(row => {
+                    const rowData = {};
+                    // input, select, textarea 값 저장
+                    row.querySelectorAll('input, select, textarea').forEach(el => {
+                        if (el.name) {
+                            rowData[el.name] = el.value;
+                        }
+                    });
+                    // span (근무자명) 값 저장
+                    row.querySelectorAll('.driver-name[data-name-for]').forEach(span => {
+                        rowData[span.dataset.nameFor] = span.innerHTML; // <br> 포함
+                    });
+                    // 차번 저장
+                    const carCells = row.querySelectorAll('.car-number-cell[data-car-number]');
+                    if (carCells[0]) rowData.leftCar = carCells[0].dataset.carNumber;
+                    if (carCells[1]) rowData.rightCar = carCells[1].dataset.carNumber;
+                    
+                    logData.routes[routeName].push(rowData);
+                });
+            });
+
+            const jsonString = JSON.stringify(logData, null, 2);
+            const now = new Date();
+            const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+            const filename = `dispatch_log_backup_${timestamp}.json`;
+            
+            const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            alert('승무일지 백업이 완료되었습니다.');
+        }
+
+        function s2_triggerRestore() {
+            document.getElementById('s2_restoreFile').click();
+        }
+
+        function s2_restoreLogData(file) {
+            const fileInput = document.getElementById('s2_restoreFile');
+            if (!file) {
+                fileInput.value = '';
+                return;
+            }
+            if (!confirm(`[${file.name}] 파일을 업로드하여 승무일지를 복구하시겠습니까? (현재 S2 화면의 모든 내용이 덮어쓰여집니다.)`)) {
+                fileInput.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const loadedData = JSON.parse(event.target.result);
+                    if (!loadedData.routes) {
+                         alert('파일 형식이 올바르지 않습니다. (routes 속성 필요)');
+                         throw new Error('Invalid backup file structure');
+                    }
+                    
+                    // S2 화면 재구성 (S1 데이터 연동을 무시하고 파일 내용으로 덮어쓰기)
+                    const container = document.getElementById('dispatch-log-body');
+                    container.innerHTML = ''; // S2 화면 비우기
+
+                    for (const routeName in loadedData.routes) {
+                        const routeData = loadedData.routes[routeName];
+                        if (!allRoutesData.routes[routeName]) {
+                            console.warn(`[S2 복구] S1에 ${routeName} 노선이 없어 S2 화면을 생성하지 못했습니다.`);
+                            continue;
+                        }
+                        
+                        // S1의 차량 정보 (S2 복구 시 차번이 S1에 없어도 일단 그림)
+                        const s1Vehicles = allRoutesData.routes[routeName].vehicleColumns || [];
+                        const routeId = S2_ROUTE_MAP[routeName] || s2_sanitizeForId(routeName);
+                        
+                        // S2 테이블 헤더 생성
+                        const tableHeader = s2_createTableHeaderHTML(routeId);
+                        
+                        // S2 테이블 바디 생성 (파일 데이터 기반)
+                        let tableBodyHTML = '';
+                        routeData.forEach(rowData => {
+                            const leftCar = rowData.leftCar || '미입력';
+                            const rightCar = rowData.rightCar || '미입력';
+                            
+                            // S1에 없는 차번이라도 파일에 있으면 복구
+                            const leftHTML = s2_createRowSideHTML_fromBackup(routeName, leftCar, rowData);
+                            const rightHTML = s2_createRowSideHTML_fromBackup(routeName, rightCar, rowData);
+                            tableBodyHTML += `<tr>${leftHTML}${rightHTML}</tr>`;
+                        });
+
+                        // S2 섹션 옵션 생성 (S1 데이터 기반)
+                        const s2_optionsHTML = s2_createOptionsHTML(routeId, s1Vehicles);
+                        
+                        // S2 섹션 HTML 조립
+                        container.insertAdjacentHTML('beforeend', `
+                            <div class="route-section" id="route-${routeId}" data-route-name="${routeName}">
+                                <div class="route-header-flex">
+                                    <div class="route-title-group">
+                                        <div class="route-name-text">${routeName}</div>
+                                    </div>
+                                    ${s2_optionsHTML}
+                                </div>
+                                <table class="journal-table">
+                                    ${tableHeader}
+                                    <tbody>${tableBodyHTML}</tbody>
+                                </table>
+                            </div>
+                        `);
+                    }
+                    
+                    alert(`[${file.name}] 파일로부터 승무일지 복구를 완료했습니다.`);
+                } catch (e) {
+                    alert('파일을 읽는 도중 오류가 발생했습니다: ' + e.message);
+                } finally {
+                    fileInput.value = '';
+                }
+            };
+            reader.onerror = function() {
+                alert('파일을 읽을 수 없습니다.');
+                fileInput.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        /**
+         * S2: 백업 파일로부터 S2의 한 쪽(8열) HTML을 복구 (s2_createRowSideHTML과 유사)
+         */
+        function s2_createRowSideHTML_fromBackup(routeName, carNumber, rowData) {
+            const routeId = S2_ROUTE_MAP[routeName] || s2_sanitizeForId(routeName);
+            
+            if (!carNumber || carNumber === '미입력') {
+                return '<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>';
+            }
+
+            // 파일 데이터에서 값 추출
+            const startTimeAm = rowData[`start_time_${routeId}_${carNumber}_am`] || '';
+            const workHoursAm = rowData[`work_hours_${routeId}_${carNumber}_am`] || '';
+            const driverAm = rowData[`s2_${routeId}_${carNumber}_am_driver`] || ''; // <br> 포함
+            
+            const startTimePm = rowData[`start_time_${routeId}_${carNumber}_pm`] || '';
+            const workHoursPm = rowData[`work_hours_${routeId}_${carNumber}_pm`] || '';
+            const driverPm = rowData[`s2_${routeId}_${carNumber}_pm_driver`] || ''; // <br> 포함
+            
+            const driverRest = rowData[`s2_${routeId}_${carNumber}_rest_driver`] || ''; // <br> 포함
+
+            // 근무시간 <select> HTML 생성
+            const workHoursOptions = `
+                <option value="">기본</option>
+                ${Array.from({length: 19}, (_, i) => `<option value="${i}" ${workHoursAm == i ? 'selected' : ''}>${i}</option>`).join('')}
+            `;
+            const workHoursOptionsPm = `
+                <option value="">기본</option>
+                ${Array.from({length: 19}, (_, i) => `<option value="${i}" ${workHoursPm == i ? 'selected' : ''}>${i}</option>`).join('')}
+            `;
+
+            return `
+                <td class="car-number-cell" data-car-number="${carNumber}" 
+                    onclick="s2_toggleCarNumberEditMode(this, event, '${routeName}')" 
+                    draggable="true" 
+                    ondragstart="s2_dragStart(event, '${routeName}')" 
+                    ondragover="s2_dragOver(event)" 
+                    ondrop="s2_drop(event, '${routeName}')"
+                    ondragend="s2_dragEnd(event)">
+                    <div class="car-display">${carNumber}</div>
+                    <div class="car-controls hidden"><select onchange="s2_changeCarNumber(this, event, '${routeName}')"></select><div><button onclick="s2_deleteCarRow(this.parentNode.parentNode.parentNode, event)">삭제</button><button onclick="s2_exitCarNumberEditMode(this.parentNode.parentNode.parentNode, event)">닫기</button></div></div>
+                </td>
+                <td><input type="text" name="start_time_${routeId}_${carNumber}_am" value="${startTimeAm}"></td>
+                <td>
+                    <select name="work_hours_${routeId}_${carNumber}_am" class="s2-work-hours-select">
+                         ${workHoursOptions}
+                    </select>
+                </td>
+                <td onclick="s2_toggleEditMode(this)">
+                    <span class="driver-name" data-name-for="s2_${routeId}_${carNumber}_am_driver">${driverAm}</span>
+                    <textarea class="driver-input hidden" name="s2_${routeId}_${carNumber}_am_driver"></textarea>
+                    <div class="edit-controls hidden"><button onclick="s2_deleteName(this.parentNode.parentNode, event)">삭제</button><button onclick="s2_saveAndExit(this.parentNode.parentNode, event)">수정</button></div>
+                </td>
+                <td><input type="text" name="start_time_${routeId}_${carNumber}_pm" value="${startTimePm}"></td>
+                <td>
+                    <select name="work_hours_${routeId}_${carNumber}_pm" class="s2-work-hours-select">
+                         ${workHoursOptionsPm}
+                    </select>
+                </td> 
+                <td onclick="s2_toggleEditMode(this)">
+                    <span class="driver-name" data-name-for="s2_${routeId}_${carNumber}_pm_driver">${driverPm}</span>
+                    <textarea class="driver-input hidden" name="s2_${routeId}_${carNumber}_pm_driver"></textarea>
+                    <div class="edit-controls hidden"><button onclick="s2_deleteName(this.parentNode.parentNode, event)">삭제</button><button onclick="s2_saveAndExit(this.parentNode.parentNode, event)">수정</button></div>
+                </td> 
+                <td onclick="s2_toggleEditMode(this)">
+                    <span class="driver-name" data-name-for="s2_${routeId}_${carNumber}_rest_driver">${driverRest}</span>
+                    <textarea class="driver-input hidden" name="s2_${routeId}_${carNumber}_rest_driver"></textarea>
+                    <div class="edit-controls hidden"><button onclick="s2_deleteName(this.parentNode.parentNode, event)">삭제</button><button onclick="s2_saveAndExit(this.parentNode.parentNode, event)">수정</button></div>
+                </td> 
+            `;
+        }
+
+
+        // --- S2: 테이블 헤더 (Colgroup, Thead) HTML 생성 함수 ---
+        function s2_createTableHeaderHTML(routeId) {
+            // S2 '새로운 배차표-25'의 원본 HTML 구조 유지
+            return `
+                <colgroup>
+                    <col style="width: 5.4%;"> <col style="width: 5.4%;"> <col style="width: 5.4%;"> <col style="width: 5.4%;">
+                    <col style="width: 5.4%;"> <col style="width: 5.4%;"> <col style="width: 5.4%;"> <col style="width: 5.4%;">
+                    <col style="width: 5.4%;"> <col style="width: 5.4%;"> <col style="width: 5.4%;"> <col style="width: 5.4%;">
+                    <col style="width: 5.4%;"> <col style="width: 5.4%;"> <col style="width: 5.4%;"> <col style="width: 5.4%;">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th>차번</th> <th>출근</th> <th>근무<br>시간</th> <th>오전</th>
+                        <th>퇴근</th> <th>근무<br>시간</th> <th>오후</th> <th>휴무자</th>
+                        <th>차번</th> <th>출근</th> <th>근무<br>시간</th> <th>오전</th>
+                        <th>퇴근</th> <th>근무<br>시간</th> <th>오후</th> <th>휴무자</th>
+                    </tr>
+                </thead>
+            `;
+        }
+        
+        // --- S2: 노선별 스케줄 옵션 (상단 컨트롤) HTML 생성 함수 ---
+        function s2_createOptionsHTML(routeId, vehicleNumbers) {
+            // S1의 차량 목록 (미입력 제외)
+            const validVehicles = vehicleNumbers.filter(v => v && v !== '미입력');
+            const vehicleOptions = validVehicles.map(v => `<option value="${v}">${v}</option>`).join('');
+            
+            // S2 '새로운 배차표-25'의 원본 HTML 구조 유지
+            return `
+                <div class="schedule-options">
+                    <div class="am-options">
+                        <span>[오전]</span>
+                        <select name="vehicle_select_${routeId}_am"><option value="">첫차</option>${vehicleOptions}</select>
+                        <input type="number" name="hour_${routeId}_am" min="0" max="23">시
+                        <input type="number" name="minute_${routeId}_am" min="0" max="59">분
+                        (배차간격 <input type="number" name="interval_${routeId}_am" min="0">분)
+                    </div>
+                    <div class="pm-options">
+                        <span>[오후]</span>
+                        <select name="vehicle_select_${routeId}_pm"><option value="">막차</option>${vehicleOptions}</select>
+                        <input type="number" name="hour_${routeId}_pm" min="0" max="23">시
+                        <input type="number" name="minute_${routeId}_pm" min="0" max="59">분
+                        (배차간격 <input type="number" name="interval_${routeId}_pm" min="0">분)
+                    </div>
+                </div>
+                <div class="settings-controls">
+                    <button type="button" class="setting-button apply-button" onclick="s2_applyScheduleSettings('${routeId}')">시간 적용</button>
+                    <button type="button" class="setting-button reset-button" onclick="s2_resetScheduleSettings('${routeId}')">초기화</button>
+                </div>
+            `;
+        }
+
+
+        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+        // ★ [핵심] S2: 승무일지 전체 초기화 (S1 데이터 연동)
+        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+        
+        function initializeDispatchLog() {
+            // 0. S2 오늘 날짜 표시
+            const dateDisplay = document.getElementById('today-date');
+            if (dateDisplay) {
+                dateDisplay.textContent = s2_getTodayDateString();
+            }
+
+            // 1. S1 마스터 데이터 로드 (allRoutesData 전역 변수 사용)
+            // (페이지 로드 시 S1이 먼저 로드하므로, S2는 로드된 데이터를 바로 사용)
+            if (!allRoutesData || !allRoutesData.routes) {
+                console.error("S2 초기화 실패: S1의 마스터 데이터(allRoutesData)를 찾을 수 없습니다.");
+                return;
+            }
+
+            const container = document.getElementById('dispatch-log-body');
+            if (!container) return;
+            
+            container.innerHTML = ''; // S2 컨테이너 비우기
+
+            // 2. S1에 정의된 모든 노선(routes)을 순회
+            for (const routeName in allRoutesData.routes) {
+                const routeData = allRoutesData.routes[routeName];
+                if (!routeData) continue;
+                
+                const routeId = S2_ROUTE_MAP[routeName] || s2_sanitizeForId(routeName);
+                
+                // 3. S1의 '오늘 날짜' 근무 데이터 가져오기 (temp + fixed)
+                const todayScheduleData = s2_getTodayScheduleData(routeData);
+
+                // 4. S1의 차량 목록 가져오기
+                const vehicleColumns = routeData.vehicleColumns || [];
+                const validVehicles = vehicleColumns.filter(v => v && v !== '미입력');
+                
+                // 5. S2 테이블 헤더 생성
+                const tableHeader = s2_createTableHeaderHTML(routeId);
+
+                // 6. S2 테이블 바디 생성 (S1 데이터 연동)
+                let tableBodyHTML = '';
+                const halfCount = Math.ceil(validVehicles.length / 2);
+
+                for (let i = 0; i < halfCount; i++) {
+                    const leftCar = validVehicles[i] || '미입력';
+                    const rightCar = validVehicles[i + halfCount] || '미입력';
+                    
+                    // S1 데이터를 기반으로 S2의 행(좌/우) HTML 생성
+                    const leftHTML = s2_createRowSideHTML(routeName, leftCar, todayScheduleData);
+                    const rightHTML = s2_createRowSideHTML(routeName, rightCar, todayScheduleData);
+                    
+                    tableBodyHTML += `<tr>${leftHTML}${rightHTML}</tr>`;
+                }
+                
+                // 7. S2 노선별 옵션 컨트롤 생성 (S1 차량 목록 전달)
+                const s2_optionsHTML = s2_createOptionsHTML(routeId, validVehicles);
+
+                // 8. S2 노선 섹션 HTML 조립
+                container.insertAdjacentHTML('beforeend', `
+                    <div class="route-section" id="route-${routeId}" data-route-name="${routeName}">
+                        <div class="route-header-flex">
+                            <div class="route-title-group">
+                                <div class="route-name-text">${routeName}</div>
+                            </div>
+                            ${s2_optionsHTML}
+                        </div>
+                        <table class="journal-table">
+                            ${tableHeader}
+                            <tbody>${tableBodyHTML}</tbody>
+                        </table>
+                    </div>
+                `);
+            } // end for (route loop)
+            
+            console.log("S2: 승무일지 초기화 및 S1 데이터 연동 완료.");
+        }
+
+
+        /* ================================================================= */
+        /* [공통] 페이지 로드 시 실행 (S1, S2 순차 초기화) */
+        /* ================================================================= */
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOM 로드 완료. S1, S2 초기화 시작.");
+            
+            // 1. S1(근무 현황표) 먼저 초기화 (데이터 로드)
+            initializeSection1();
+            
+            // 2. S2(승무 일지) 초기화 (S1 데이터 기반으로 UI 생성)
+            initializeDispatchLog();
+            
+            // 3. S2 출차순서 기본값 '1'로 설정
+            s2_changeDispatchOrder('1');
+        });
+
+    </script>
+</body>
+</html>
